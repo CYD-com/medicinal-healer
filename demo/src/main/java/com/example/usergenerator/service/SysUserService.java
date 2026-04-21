@@ -1,0 +1,35 @@
+package com.example.usergenerator.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.usergenerator.dto.user.UserLoginDTO;
+import com.example.usergenerator.dto.user.UserRegisterDTO;
+import com.example.usergenerator.dto.user.UserUpdateRoleDTO;
+import com.example.usergenerator.entity.SysUser;
+import com.example.usergenerator.vo.user.UserGenerateVO;
+import com.example.usergenerator.vo.user.UserLoginVO;
+import com.example.usergenerator.vo.user.UserVO;
+
+import java.util.List;
+
+public interface SysUserService extends IService<SysUser> {
+
+    UserGenerateVO generateAndSaveUser();
+
+    UserLoginVO login(UserLoginDTO dto);
+
+    void register(UserRegisterDTO dto);
+
+    void updateUserRole(UserUpdateRoleDTO dto);
+
+    UserVO getUserById(Long id);
+
+    UserVO getUserByUsername(String username);
+
+    List<UserVO> listAllUsers();
+
+    void deleteUser(Long id);
+
+    void updateAvatar(String avatar);
+
+    UserVO getCurrentUserInfo();
+}
