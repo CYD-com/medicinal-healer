@@ -69,153 +69,155 @@
   </el-dialog>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { useUserStore } from '@/stores/user';
-import { getUserList, addUser, deleteUser, updateUserRole } from '@/api/user';
+<script setup lang="ts">
+import { ref, onMounted } from "vue"
+import { ElMessage, ElMessageBox } from "element-plus"
+import type { FormInstance, FormRules } from "element-plus"
+import { useUserStore } from '@/stores/user'
+import type { UserForm, UserItem } from '@/types'
+import { getUserList, addUser, deleteUser, updateUserRole } from '@/api/user'
 
-const userStore = useUserStore();
-const tableData = ref([]);
-const allTableData = ref([]);
-const page = ref(1);
-const size = ref(10);
-const total = ref(0);
-const dialogVisible = ref(false);
-const searchKeyword = ref("");
-const formRef = ref(null);
-const form = ref({
+const userStore = useUserStore()
+const tableData = ref<UserItem[]>([])
+const allTableData = ref<UserItem[]>([])
+const page = ref<number>(1)
+const size = ref<number>(10)
+const total = ref<number>(0)
+const dialogVisible = ref<boolean>(false)
+const searchKeyword = ref<string>("")
+const formRef = ref<FormInstance>()
+const form = ref<UserForm>({
   username: "",
   password: "",
   role: "user",
-});
-const rules = ref({
+})
+const rules = ref<FormRules<UserForm>>({
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
   role: [{ required: true, message: "请选择角色", trigger: "change" }],
-});
+})
 
-const getList = async () => {
+const getList = async (): Promise<void> => {
   try {
-    const response = await getUserList();
+    const response: any = await getUserList()
     if (response.code === 200) {
-      allTableData.value = response.data || [];
-      filterData();
+      allTableData.value = response.data || []
+      filterData()
     } else {
-      ElMessage.error(response.msg || '获取用户列表失败');
+      ElMessage.error(response.msg || '获取用户列表失败')
     }
   } catch (error) {
-    ElMessage.error('获取用户列表失败');
-    console.error('获取用户列表失败:', error);
+    ElMessage.error('获取用户列表失败')
+    console.error('获取用户列表失败:', error)
   }
-};
+}
 
-const filterData = () => {
-  let filteredData = allTableData.value;
+const filterData = (): void => {
+  let filteredData = allTableData.value
   
   if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.trim().toLowerCase();
+    const keyword = searchKeyword.value.trim().toLowerCase()
     filteredData = filteredData.filter(user => 
       user.username.toLowerCase().includes(keyword)
-    );
+    )
   }
   
-  total.value = filteredData.length;
+  total.value = filteredData.length
   
   // 分页
-  const start = (page.value - 1) * size.value;
-  const end = start + size.value;
-  tableData.value = filteredData.slice(start, end);
-};
+  const start = (page.value - 1) * size.value
+  const end = start + size.value
+  tableData.value = filteredData.slice(start, end)
+}
 
-const handleSearch = () => {
-  page.value = 1;
-  filterData();
-};
+const handleSearch = (): void => {
+  page.value = 1
+  filterData()
+}
 
-const handleReset = () => {
-  searchKeyword.value = "";
-  page.value = 1;
-  filterData();
-};
+const handleReset = (): void => {
+  searchKeyword.value = ""
+  page.value = 1
+  filterData()
+}
 
-const handleAdd = () => {
+const handleAdd = (): void => {
   form.value = {
     username: "",
     password: "",
     role: "user",
-  };
-  dialogVisible.value = true;
-};
+  }
+  dialogVisible.value = true
+}
 
-const handleSubmit = async () => {
+const handleSubmit = async (): Promise<void> => {
   try {
-    await formRef.value.validate();
+    await formRef.value?.validate()
     
-    const response = await addUser(form.value.username, form.value.password, form.value.role);
+    const response: any = await addUser(form.value.username, form.value.password, form.value.role)
     if (response.code === 200) {
-      ElMessage.success('添加成功');
+      ElMessage.success('添加成功')
     } else {
-      ElMessage.error(response.msg || '添加失败');
+      ElMessage.error(response.msg || '添加失败')
     }
     
-    dialogVisible.value = false;
-    getList();
+    dialogVisible.value = false
+    getList()
   } catch (error) {
-    ElMessage.error("操作失败");
+    ElMessage.error("操作失败")
   }
-};
+}
 
-const handleCancel = () => {
-  formRef.value?.resetFields();
-  dialogVisible.value = false;
-};
+const handleCancel = (): void => {
+  formRef.value?.resetFields()
+  dialogVisible.value = false
+}
 
-const handleToggleRole = async (row) => {
+const handleToggleRole = async (row: UserItem): Promise<void> => {
   try {
-    const newRole = row.role === 'admin' ? 'user' : 'admin';
-    const action = newRole === 'admin' ? '设为管理员' : '设为用户';
+    const newRole = row.role === 'admin' ? 'user' : 'admin'
+    const action = newRole === 'admin' ? '设为管理员' : '设为用户'
     await ElMessageBox.confirm(`确定要将用户 ${row.username} ${action}吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    });
+    })
     
-    const response = await updateUserRole(row.id, newRole);
+    const response: any = await updateUserRole(row.id, newRole)
     if (response.code === 200) {
-      ElMessage.success("角色修改成功");
-      getList();
+      ElMessage.success("角色修改成功")
+      getList()
     } else {
-      ElMessage.error(response.msg || '角色修改失败');
+      ElMessage.error(response.msg || '角色修改失败')
     }
   } catch (error) {
-    console.log('取消操作');
+    console.log('取消操作')
   }
-};
+}
 
-const handleDelete = async (id) => {
+const handleDelete = async (id: string): Promise<void> => {
   try {
     await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    });
+    })
     
-    const response = await deleteUser(id);
+    const response: any = await deleteUser(id)
     if (response.code === 200) {
-      ElMessage.success("删除成功");
-      getList();
+      ElMessage.success("删除成功")
+      getList()
     } else {
-      ElMessage.error(response.msg || '删除失败');
+      ElMessage.error(response.msg || '删除失败')
     }
   } catch (error) {
-    console.log('取消删除');
+    console.log('取消删除')
   }
-};
+}
 
 onMounted(() => {
-  getList();
-});
+  getList()
+})
 </script>
 
 <style scoped>

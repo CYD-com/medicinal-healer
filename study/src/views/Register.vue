@@ -76,26 +76,29 @@
   </el-row>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
+import type { Router } from 'vue-router'
+import type { RegisterForm } from '@/types'
 import { register, getCaptcha } from '@/api/login'
 
-const router = useRouter()
-const formRef = ref(null)
-const loading = ref(false)
-const captchaImage = ref('')
-const captchaUuid = ref('')
+const router: Router = useRouter()
+const formRef = ref<FormInstance>()
+const loading = ref<boolean>(false)
+const captchaImage = ref<string>('')
+const captchaUuid = ref<string>('')
 
-const form = reactive({
+const form = reactive<RegisterForm>({
   username: '',
   password: '',
   confirmPassword: '',
   code: ''
 })
 
-const rules = {
+const rules: FormRules<RegisterForm> = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -104,7 +107,7 @@ const rules = {
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
     {
-      validator: (rule, value, callback) => {
+      validator: (rule: any, value: any, callback: any) => {
         if (value !== form.password) {
           callback(new Error('两次输入的密码不一致'))
         } else {
@@ -117,11 +120,10 @@ const rules = {
   code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
-const refreshCaptcha = async () => {
+const refreshCaptcha = async (): Promise<void> => {
   try {
-    const response = await getCaptcha()
+    const response: any = await getCaptcha()
     if (response.code === 200) {
-      // 添加data:image/png;base64,前缀，确保图片能正确显示
       captchaImage.value = 'data:image/png;base64,' + response.data.image
       captchaUuid.value = response.data.uuid
     }
@@ -130,14 +132,14 @@ const refreshCaptcha = async () => {
   }
 }
 
-const handleRegister = async () => {
+const handleRegister = async (): Promise<void> => {
   try {
-    await formRef.value.validate()
+    await formRef.value?.validate()
     loading.value = true
 
-    const success = await register(form.username, form.password, form.code, captchaUuid.value)
+    const res: any = await register(form.username, form.password, form.code, captchaUuid.value)
     
-    if (success) {
+    if (res.code === 200) {
       ElMessage.success('注册成功，即将跳转到登录页面')
       setTimeout(() => {
         router.push('/login')

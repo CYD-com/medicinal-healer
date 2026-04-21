@@ -7,7 +7,7 @@ export function getUserList() {
   })
 }
 
-export function addUser(username, password, role) {
+export function addUser(username: string, password: string, role: string) {
   return request({
     url: '/api/user/add',
     method: 'post',
@@ -15,7 +15,7 @@ export function addUser(username, password, role) {
   })
 }
 
-export function updateUser(id, role) {
+export function updateUser(id: string, role: string) {
   return request({
     url: `/api/user/update/${id}`,
     method: 'put',
@@ -23,14 +23,14 @@ export function updateUser(id, role) {
   })
 }
 
-export function deleteUser(id) {
+export function deleteUser(id: string) {
   return request({
     url: `/api/user/delete/${id}`,
     method: 'delete'
   })
 }
 
-export function updateUserRole(id, role) {
+export function updateUserRole(id: string, role: string) {
   return request({
     url: '/api/user/role',
     method: 'put',
@@ -38,7 +38,7 @@ export function updateUserRole(id, role) {
   })
 }
 
-export function uploadAvatar(file) {
+export function uploadAvatar(file: File) {
   const formData = new FormData()
   formData.append('file', file)
   return request({
@@ -51,7 +51,7 @@ export function uploadAvatar(file) {
   })
 }
 
-export function updateAvatar(avatar) {
+export function updateAvatar(avatar: string) {
   return request({
     url: '/api/user/avatar',
     method: 'put',

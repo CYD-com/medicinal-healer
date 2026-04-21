@@ -176,38 +176,39 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // 导入Vue 3组合式API和相关组件
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Goods, Warning, Close, Clock } from '@element-plus/icons-vue'
 // 导入药品相关API
 import { getDrugList, getDrugDetail, getInventorySummary, getInventoryList, getDrugCategories } from '@/api/drug'
+import type { DrugItem, DrugCategory, InventoryItem, InventorySummary } from '@/types'
 
 // 响应式状态管理
-const activeTab = ref('drug-list') // 当前激活的标签页
-const drugSearch = ref('') // 搜索关键词
-const drugCategory = ref('') // 药品分类筛选
-const drugType = ref('') // 药品类型筛选
-const selectedDrug = ref(null) // 当前选中的药品详情
-const loading = ref(false) // 加载状态
-const categories = ref([]) // 药品分类列表
+const activeTab = ref<string>('drug-list') // 当前激活的标签页
+const drugSearch = ref<string>('') // 搜索关键词
+const drugCategory = ref<string>('') // 药品分类筛选
+const drugType = ref<string>('') // 药品类型筛选
+const selectedDrug = ref<DrugItem | null>(null) // 当前选中的药品详情
+const loading = ref<boolean>(false) // 加载状态
+const categories = ref<DrugCategory[]>([]) // 药品分类列表
 
 // 药品数据
-const drugs = ref([]) // 药品列表
-const inventorySummary = ref({ // 库存概览
+const drugs = ref<DrugItem[]>([]) // 药品列表
+const inventorySummary = ref<InventorySummary>({ // 库存概览
   totalDrugs: 0,
   lowStock: 0,
   outOfStock: 0,
   expiringSoon: 0
 })
-const inventoryItems = ref([]) // 库存列表
+const inventoryItems = ref<InventoryItem[]>([]) // 库存列表
 
 /**
  * 获取药品列表
  * @description 调用后端接口获取药品列表，支持搜索和筛选
  */
-const fetchDrugList = async () => {
+const fetchDrugList = async (): Promise<void> => {
   try {
     loading.value = true
     const query = {
@@ -217,7 +218,7 @@ const fetchDrugList = async () => {
       page: 1,
       size: 100 // 一次性获取较多数据，避免分页
     }
-    const response = await getDrugList(query)
+    const response: any = await getDrugList(query)
     if (response.code === 200) {
       drugs.value = response.data.records
     } else {
@@ -235,9 +236,9 @@ const fetchDrugList = async () => {
  * 获取库存概览
  * @description 调用后端接口获取库存统计数据
  */
-const fetchInventorySummary = async () => {
+const fetchInventorySummary = async (): Promise<void> => {
   try {
-    const response = await getInventorySummary()
+    const response: any = await getInventorySummary()
     if (response.code === 200) {
       inventorySummary.value = response.data
     } else {
@@ -253,9 +254,9 @@ const fetchInventorySummary = async () => {
  * 获取库存列表
  * @description 调用后端接口获取库存明细
  */
-const fetchInventoryList = async () => {
+const fetchInventoryList = async (): Promise<void> => {
   try {
-    const response = await getInventoryList(1, 100) // 一次性获取较多数据
+    const response: any = await getInventoryList(1, 100) // 一次性获取较多数据
     if (response.code === 200) {
       inventoryItems.value = response.data.records
     } else {
@@ -271,9 +272,9 @@ const fetchInventoryList = async () => {
  * 获取药品分类
  * @description 调用后端接口获取药品分类列表
  */
-const fetchDrugCategories = async () => {
+const fetchDrugCategories = async (): Promise<void> => {
   try {
-    const response = await getDrugCategories()
+    const response: any = await getDrugCategories()
     if (response.code === 200) {
       categories.value = response.data
     } else {
@@ -287,13 +288,13 @@ const fetchDrugCategories = async () => {
 
 /**
  * 查看药品详情
- * @param {Object} drug - 药品对象
+ * @param {DrugItem} drug - 药品对象
  * @description 点击药品列表中的详情按钮时调用，显示药品详细信息
  */
-const viewDrugDetail = async (drug) => {
+const viewDrugDetail = async (drug: DrugItem): Promise<void> => {
   try {
     loading.value = true
-    const response = await getDrugDetail(drug.id)
+    const response: any = await getDrugDetail(drug.id)
     if (response.code === 200) {
       selectedDrug.value = response.data
       // 切换到药品详情标签页
@@ -310,12 +311,12 @@ const viewDrugDetail = async (drug) => {
 }
 
 // 监听搜索和筛选条件变化
-const handleSearch = () => {
+const handleSearch = (): void => {
   fetchDrugList()
 }
 
-// 组件挂载时获取数据
-onMounted(async () => {
+// 组件加载时获取数据
+onMounted(async (): Promise<void> => {
   // 并行请求所有数据
   await Promise.all([
     fetchDrugList(),

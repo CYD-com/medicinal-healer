@@ -29,28 +29,24 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
+import type { EditDialogForm } from '@/types'
 
-const emit = defineEmits(['update:visible', 'save'])
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'save', value: EditDialogForm): void
+}>()
 
-const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false
-  },
-  editData: {
-    type: Object,
-    default: () => ({})
-  }
-})
+const props = defineProps<{
+  visible: boolean
+  editData?: Partial<EditDialogForm>
+}>()
 
 const formLabelWidth = '140px'
-const dialogFormVisible = ref(props.visible)
+const dialogFormVisible = ref<boolean>(props.visible)
 
-
-
-const form = reactive({
+const form = reactive<EditDialogForm>({
   id: 0,
   category: '',
   style: '',
@@ -60,25 +56,29 @@ const form = reactive({
 })
 
 // 监听父组件传入的visible变化，同步对话框显示状态
-watch(() => props.visible, (newVal) => {
+watch(() => props.visible, (newVal: boolean) => {
   dialogFormVisible.value = newVal
 })
 
 // 监听父组件传入的editData变化，初始化表单数据
-watch(() => props.editData, (newVal) => {
-  if (newVal.id) { // 确保传入有效数据
-    Object.assign(form, newVal) // 将父组件数据复制到表单
-  }
-}, { deep: true })
+watch(
+  () => props.editData, 
+  (newVal) => {
+    if (newVal && newVal.id !== undefined) { // 确保传入有效数据
+      Object.assign(form, newVal) // 将父组件数据复制到表单
+    }
+  }, 
+  { deep: true }
+)
 
 // 取消按钮：关闭对话框并通知父组件
-const handleCancel = () => {
+const handleCancel = (): void => {
   dialogFormVisible.value = false
   emit('update:visible', false)
 }
 
 // 确认按钮：将编辑后的数据传递给父组件
-const handleConfirm = () => {
+const handleConfirm = (): void => {
   emit('save', { ...form }) // 传递表单数据
   dialogFormVisible.value = false
   emit('update:visible', false)

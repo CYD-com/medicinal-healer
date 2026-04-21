@@ -1,14 +1,14 @@
-import axios from 'axios'
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 import { API_BASE_URL } from '@/constants'
 import router from '@/router'
 
-const service = axios.create({
+const service: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 5000
 })
 
 service.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     // 登录和注册请求不添加 token 和 role
     if (config.url && (config.url.includes('/login') || config.url.includes('/register'))) {
       return config
@@ -18,11 +18,13 @@ service.interceptors.request.use(
     const role = localStorage.getItem('role') || sessionStorage.getItem('role')
     
     if (token) {
+      config.headers = config.headers || {}
       config.headers.Authorization = `Bearer ${token}`
       config.headers['X-Token'] = token
     }
     
     if (role) {
+      config.headers = config.headers || {}
       config.headers['X-User-Role'] = role
     }
     
@@ -34,7 +36,7 @@ service.interceptors.request.use(
 )
 
 service.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     return response.data
   },
   (error) => {

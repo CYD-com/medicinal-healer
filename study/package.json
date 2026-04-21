@@ -8,8 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "axios": "^1.12.2",
@@ -20,13 +21,16 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@types/node": "^22.10.2",
     "@vitejs/plugin-vue": "^6.0.1",
     "eslint": "^9.36.0",
     "eslint-plugin-vue": "^10.5.0",
     "less": "^4.4.1",
     "mockjs": "^1.1.0",
+    "typescript": "^5.7.2",
     "vite": "^7.0.6",
     "vite-plugin-mock": "^3.0.2",
-    "vite-plugin-vue-devtools": "^8.0.0"
+    "vite-plugin-vue-devtools": "^8.0.0",
+    "vue-tsc": "^3.0.0"
   }
 }

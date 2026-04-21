@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import { API_PATHS } from '@/constants'
 
-export function login(username, password) {
+export function login(username: string, password: string) {
   return request({
     url: API_PATHS.LOGIN,
     method: 'post',
@@ -9,7 +9,7 @@ export function login(username, password) {
   })
 }
 
-export function register(username, password, code, uuid) {
+export function register(username: string, password: string, code: string, uuid: string) {
   return request({
     url: '/api/user/register',
     method: 'post',

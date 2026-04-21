@@ -3,16 +3,37 @@ import { ref, computed } from 'vue'
 import { login as loginApi, logout as logoutApi, register as registerApi } from '@/api/login'
 import { useRequest } from '@/composables/useRequest'
 
+interface UserInfo {
+  id?: string
+  username?: string
+  role?: string
+  [key: string]: any
+}
+
+interface LoginResponse {
+  code: number
+  msg: string
+  data: {
+    token: string
+    role: string
+  }
+}
+
+interface RegisterResponse {
+  code: number
+  msg: string
+}
+
 export const useUserStore = defineStore('user', () => {
-  const token = ref(localStorage.getItem('token') || sessionStorage.getItem('token') || '')
-  const username = ref(localStorage.getItem('username') || sessionStorage.getItem('username') || '')
-  const role = ref(localStorage.getItem('role') || sessionStorage.getItem('role') || '')
-  const userInfo = ref(null)
+  const token = ref<string>(localStorage.getItem('token') || sessionStorage.getItem('token') || '')
+  const username = ref<string>(localStorage.getItem('username') || sessionStorage.getItem('username') || '')
+  const role = ref<string>(localStorage.getItem('role') || sessionStorage.getItem('role') || '')
+  const userInfo = ref<UserInfo | null>(null)
 
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => role.value === 'admin')
 
-  const setToken = (newToken, remember = false) => {
+  const setToken = (newToken: string, remember: boolean = false) => {
     token.value = newToken
     if (remember) {
       localStorage.setItem('token', newToken)
@@ -21,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const setUsername = (newUsername, remember = false) => {
+  const setUsername = (newUsername: string, remember: boolean = false) => {
     username.value = newUsername
     if (remember) {
       localStorage.setItem('username', newUsername)
@@ -30,7 +51,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const setRole = (newRole, remember = false) => {
+  const setRole = (newRole: string, remember: boolean = false) => {
     role.value = newRole
     if (remember) {
       localStorage.setItem('role', newRole)
@@ -39,16 +60,16 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const setUserInfo = (info) => {
+  const setUserInfo = (info: UserInfo | null) => {
     userInfo.value = info
   }
 
-  const login = async (username, password, remember = false) => {
+  const login = async (username: string, password: string, remember: boolean = false): Promise<boolean> => {
     const { showLoading, hideLoading, showError, showSuccess } = useRequest()
     
     try {
       showLoading('登录中...')
-      const response = await loginApi(username, password)
+      const response: any = await loginApi(username, password)
       
       if (response.code === 200) {
         setToken(response.data.token, remember)
@@ -60,7 +81,7 @@ export const useUserStore = defineStore('user', () => {
         showError(response.msg || '登录失败')
         return false
       }
-    } catch (error) {
+    } catch (error: any) {
       showError(error.message || '登录失败')
       return false
     } finally {
@@ -68,13 +89,13 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     const { showSuccess, showError } = useRequest()
     
     try {
-      const response = await logoutApi()
+      const response: any = await logoutApi()
       showSuccess(response?.msg || '退出登录成功')
-    } catch (error) {
+    } catch (error: any) {
       console.error('退出登录失败:', error)
       showError('退出登录失败')
     } finally {
@@ -91,12 +112,12 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const register = async (username, password) => {
+  const register = async (username: string, password: string, code?: string, uuid?: string): Promise<boolean> => {
     const { showLoading, hideLoading, showError, showSuccess } = useRequest()
     
     try {
       showLoading('注册中...')
-      const response = await registerApi(username, password)
+      const response: any = await registerApi(username, password, code || '', uuid || '')
       
       if (response.code === 200) {
         showSuccess(response.msg || '注册成功')
@@ -105,7 +126,7 @@ export const useUserStore = defineStore('user', () => {
         showError(response.msg || '注册失败')
         return false
       }
-    } catch (error) {
+    } catch (error: any) {
       showError(error.message || '注册失败')
       return false
     } finally {

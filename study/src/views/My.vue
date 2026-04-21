@@ -6,9 +6,9 @@
         <el-avatar :size="100" :src="userInfo.avatar || ''">
           <el-icon><User /></el-icon>
         </el-avatar>
-        <el-button type="primary" size="small" class="avatar-upload-btn" @click="avatarInputRef.click()">
-          更换头像
-        </el-button>
+        <el-button type="primary" size="small" class="avatar-upload-btn" @click="avatarInputRef?.click()">
+      更换头像
+    </el-button>
         <input
           ref="avatarInputRef"
           type="file"
@@ -38,16 +38,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { User } from '@element-plus/icons-vue'
 import { uploadAvatar, updateAvatar, getUserInfo } from '@/api/user'
 import { ElMessage } from 'element-plus'
 import { API_BASE_URL } from '@/constants'
+import type { UserInfo } from '@/types'
 
 const userStore = useUserStore()
-const userInfo = ref({
+const userInfo = ref<UserInfo>({
   email: 'user@example.com',
   gender: '男',
   age: 25,
@@ -56,9 +57,9 @@ const userInfo = ref({
 })
 
 // 获取用户信息
-const fetchUserInfo = async () => {
+const fetchUserInfo = async (): Promise<void> => {
   try {
-    const res = await getUserInfo()
+    const res: any = await getUserInfo()
     if (res.code === 200) {
       userInfo.value = {
         ...userInfo.value,
@@ -79,20 +80,21 @@ onMounted(() => {
   fetchUserInfo()
 })
 
-const avatarInputRef = ref(null)
+const avatarInputRef = ref<HTMLInputElement>()
 
-const handleAvatarUpload = async (event) => {
-  const file = event.target.files[0]
+const handleAvatarUpload = async (event: Event): Promise<void> => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
   if (!file) return
 
   try {
     // 上传头像
-    const uploadRes = await uploadAvatar(file)
+    const uploadRes: any = await uploadAvatar(file)
     if (uploadRes.code === 200) {
       const avatarUrl = uploadRes.data
       
       // 更新用户头像
-      const updateRes = await updateAvatar(avatarUrl)
+      const updateRes: any = await updateAvatar(avatarUrl)
       if (updateRes.code === 200) {
         userInfo.value.avatar = API_BASE_URL + avatarUrl
         ElMessage.success('头像更新成功')
@@ -106,7 +108,9 @@ const handleAvatarUpload = async (event) => {
     ElMessage.error('上传失败，请重试')
   } finally {
     // 清空input value，允许重复选择同一文件
-    event.target.value = ''
+    if (target) {
+      target.value = ''
+    }
   }
 }
 </script>

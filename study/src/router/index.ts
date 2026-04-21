@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Layout from '@/views/Layout.vue'
 import Home from '@/views/Home.vue'
 import About from '@/views/About.vue'
@@ -6,9 +6,10 @@ import My from '@/views/My.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import Users from '@/views/Users.vue'
-import Drugs from '@/views/Drugs.vue'
+import Drugs from '@/views/drugs.vue'
+import Appointments from '@/views/Appointments.vue'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
@@ -38,6 +39,12 @@ const routes = [
         name: 'drugs',
         component: Drugs,
         meta: { title: '药品管理' }
+      },
+      {
+        path: '/appointments',
+        name: 'appointments',
+        component: Appointments,
+        meta: { title: '预约管理' }
       },
       {
         path: '/users',

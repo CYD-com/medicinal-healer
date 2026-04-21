@@ -81,152 +81,154 @@
   </el-dialog>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+<script setup lang="ts">
+import { ref, onMounted } from "vue"
+import { ElMessage } from "element-plus"
+import type { FormInstance, FormRules } from "element-plus"
+import type { RecordItem, RecordForm, SearchForm } from "@/types"
 import {
   getRecordList,
   initRecordData,
   addRecord,
   deleteRecord,
   updateRecord,
-} from "@/api/record";
+} from "@/api/record"
 
-const tableData = ref([]);
-const page = ref(1);
-const size = ref(10);
-const total = ref(0);
-const dialogVisible = ref(false);
-const isEdit = ref(false);
-const editId = ref(null);
-const formRef = ref(null);
-const form = ref({
+const tableData = ref<RecordItem[]>([])
+const page = ref<number>(1)
+const size = ref<number>(10)
+const total = ref<number>(0)
+const dialogVisible = ref<boolean>(false)
+const isEdit = ref<boolean>(false)
+const editId = ref<number | null>(null)
+const formRef = ref<FormInstance>()
+const form = ref<RecordForm>({
   category: "",
   type: "",
   status: "",
-  amount: "",
+  amount: 0,
   time: "",
-});
-const searchForm = ref({
+})
+const searchForm = ref<SearchForm>({
   category: "",
   type: "",
   status: "",
-});
-const rules = ref({
+})
+const rules = ref<FormRules<RecordForm>>({
   category: [{ required: true, message: "请输入分类", trigger: "blur" }],
   type: [{ required: true, message: "请输入类型", trigger: "blur" }],
   status: [{ required: true, message: "请输入状态", trigger: "blur" }],
   amount: [{ required: true, message: "请输入金额", trigger: "blur" }],
   time: [{ required: true, message: "请输入时间", trigger: "blur" }],
-});
+})
 
 // 计算序号
-const indexMethod = (index) => {
-  return (page.value - 1) * size.value + index + 1;
-};
+const indexMethod = (index: number): number => {
+  return (page.value - 1) * size.value + index + 1
+}
 
 // 获取列表
-const getList = async () => {
+const getList = async (): Promise<void> => {
   const params = {
     page: page.value,
     size: size.value,
     ...searchForm.value,
-  };
-  const res = await getRecordList(params);
-  if (res.code === 200) {
-    tableData.value = res.data.records || [];
-    total.value = res.data.total || 0;
   }
-};
+  const res: any = await getRecordList(params)
+  if (res.code === 200) {
+    tableData.value = res.data.records || []
+    total.value = res.data.total || 0
+  }
+}
 
 // 搜索
-const handleSearch = () => {
-  page.value = 1;
-  getList();
-};
+const handleSearch = (): void => {
+  page.value = 1
+  getList()
+}
 
 // 重置搜索
-const handleReset = () => {
+const handleReset = (): void => {
   searchForm.value = {
     category: "",
     type: "",
     status: "",
-  };
-  page.value = 1;
-  getList();
-};
+  }
+  page.value = 1
+  getList()
+}
 
 // 初始化数据
-const handleInit = async () => {
-  const res = await initRecordData();
-  ElMessage.success(res.msg);
-  getList();
-};
+const handleInit = async (): Promise<void> => {
+  const res: any = await initRecordData()
+  ElMessage.success(res.msg)
+  getList()
+}
 
-const handleAdd = () => {
-  isEdit.value = false;
-  editId.value = null;
+const handleAdd = (): void => {
+  isEdit.value = false
+  editId.value = null
   form.value = {
     category: "",
     type: "",
     status: "",
-    amount: "",
+    amount: 0,
     time: "",
-  };
-  dialogVisible.value = true;
-};
+  }
+  dialogVisible.value = true
+}
 
-const handleSubmit = async () => {
+const handleSubmit = async (): Promise<void> => {
   try {
-    await formRef.value.validate();
-    if (isEdit.value) {
-      await updateRecord(editId.value, form.value);
-      ElMessage.success("编辑成功");
+    await formRef.value?.validate()
+    if (isEdit.value && editId.value) {
+      await updateRecord(String(editId.value), form.value)
+      ElMessage.success("编辑成功")
     } else {
-      await addRecord(form.value);
-      ElMessage.success("添加成功");
+      await addRecord(form.value)
+      ElMessage.success("添加成功")
     }
-    dialogVisible.value = false;
-    getList();
+    dialogVisible.value = false
+    getList()
   } catch (error) {
     if (error !== false) {
-      ElMessage.error(error.message || "操作失败");
+      ElMessage.error(error instanceof Error ? error.message : "操作失败")
     }
   }
-};
+}
 
-const handleCancel = () => {
-  formRef.value?.resetFields();
-};
+const handleCancel = (): void => {
+  formRef.value?.resetFields()
+}
 
 // 编辑
-const handleEdit = (row) => {
-  isEdit.value = true;
-  editId.value = row.id;
+const handleEdit = (row: RecordItem): void => {
+  isEdit.value = true
+  editId.value = row.id
   form.value = {
     category: row.category,
     type: row.type,
     status: row.status,
     amount: row.amount,
     time: row.time,
-  };
-  dialogVisible.value = true;
-};
+  }
+  dialogVisible.value = true
+}
 
 // 删除
-const handleDelete = async (id) => {
+const handleDelete = async (id: number): Promise<void> => {
   try {
-    const res = await deleteRecord(id);
-    ElMessage.success("删除成功");
-    getList();
+    const res: any = await deleteRecord(id)
+    ElMessage.success("删除成功")
+    getList()
   } catch (error) {
-    ElMessage.error(error.message || "删除失败");
+    ElMessage.error(error instanceof Error ? error.message : "删除失败")
   }
-};
+}
 
 onMounted(() => {
-  getList();
-});
+  getList()
+})
 </script>
 
 <style scoped>

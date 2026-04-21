@@ -55,16 +55,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { User } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
+import type { Router } from 'vue-router'
 
-const router = useRouter()
+const router: Router = useRouter()
 const userStore = useUserStore()
 
-const handleCommand = async (command) => {
+const handleCommand = async (command: string): Promise<void> => {
   if (command === 'logout') {
     try {
       await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
