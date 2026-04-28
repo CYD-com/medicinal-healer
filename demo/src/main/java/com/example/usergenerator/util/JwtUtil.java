@@ -63,9 +63,14 @@ public class JwtUtil {
         try {
             Claims claims = parseToken(token);
             if (claims == null) {
+                log.error("Token解析失败，claims为null");
                 return false;
             }
-            return !isTokenExpired(claims);
+            if (isTokenExpired(claims)) {
+                log.error("Token已过期");
+                return false;
+            }
+            return true;
         } catch (Exception e) {
             log.error("Token验证失败: {}", e.getMessage());
             return false;

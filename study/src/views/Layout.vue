@@ -25,6 +25,9 @@
           <router-link to="/drugs" class="sidebar-item" active-class="active">
             药品管理
           </router-link>
+          <router-link to="/appointments" class="sidebar-item" active-class="active">
+            预约挂号
+          </router-link>
         </el-scrollbar>
       </el-aside>
       <el-container>

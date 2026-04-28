@@ -29,6 +29,9 @@ export interface Appointment {
   doctor: Doctor
   department: string
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  patientName?: string
+  patientPhone?: string
+  symptoms?: string
 }
 
 export interface User {

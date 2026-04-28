@@ -1,12 +1,12 @@
 <template>
   <div class="appointments-container">
     <h2>预约挂号</h2>
-    <el-tabs v-model="activeTab">
+    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="科室列表" name="departments">
         <div class="departments-card">
           <el-input v-model="deptSearch" placeholder="搜索科室" prefix-icon="el-icon-search" style="margin-bottom: 20px"></el-input>
           <div class="departments-grid">
-            <div class="dept-card" v-for="dept in departments" :key="dept.id" @click="selectDepartment(dept)">
+            <div class="dept-card" v-for="dept in filteredDepartments" :key="dept.id" @click="selectDepartment(dept)">
               <el-icon class="dept-icon"><House /></el-icon>
               <h4>{{ dept.name }}</h4>
               <p>{{ dept.description }}</p>
@@ -20,9 +20,9 @@
           <el-input v-model="doctorSearch" placeholder="搜索医生" prefix-icon="el-icon-search" style="margin-bottom: 20px"></el-input>
           <el-select v-model="selectedDepartment" placeholder="选择科室" style="width: 200px; margin-bottom: 20px">
             <el-option label="全部科室" value=""></el-option>
-            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id"></el-option>
+            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.name"></el-option>
           </el-select>
-          <el-table :data="doctors" style="width: 100%">
+          <el-table :data="filteredDoctors" style="width: 100%">
             <el-table-column label="医生信息" width="300">
               <template #default="scope">
                 <div class="doctor-info">
@@ -56,19 +56,36 @@
             <el-option label="已取消" value="cancelled"></el-option>
           </el-select>
           <el-table :data="myAppointments" style="width: 100%">
-            <el-table-column prop="appointmentDate" label="预约日期" width="180"></el-table-column>
-            <el-table-column prop="timeSlot.startTime" label="预约时间" width="120"></el-table-column>
-            <el-table-column prop="doctor.name" label="医生" width="120"></el-table-column>
+            <el-table-column prop="appointmentDate" label="预约日期" width="180">
+              <template #default="scope">
+                {{ formatDate(scope.row.appointmentDate) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="预约时间" width="120">
+              <template #default="scope">
+                {{ scope.row.timeSlot?.startTime }} - {{ scope.row.timeSlot?.endTime }}
+              </template>
+            </el-table-column>
+            <el-table-column label="医生" width="120">
+              <template #default="scope">
+                {{ scope.row.doctor?.name }}
+              </template>
+            </el-table-column>
             <el-table-column prop="department" label="科室" width="100"></el-table-column>
             <el-table-column prop="status" label="状态" width="100">
               <template #default="scope">
                 <el-tag :type="getStatusType(scope.row.status)">{{ getStatusText(scope.row.status) }}</el-tag>
               </template>
             </el-table-column>
+            <el-table-column label="患者" width="100">
+              <template #default="scope">
+                {{ scope.row.patientName }}
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="180">
               <template #default="scope">
                 <el-button v-if="scope.row.status === 'confirmed'" type="primary" size="small" @click="viewQueue(scope.row)">查看排队</el-button>
-                <el-button v-if="scope.row.status === 'confirmed'" type="danger" size="small" @click="cancelAppointment(scope.row)">取消预约</el-button>
+                <el-button v-if="scope.row.status === 'pending' || scope.row.status === 'confirmed'" type="danger" size="small" @click="cancelAppointment(scope.row)">取消预约</el-button>
                 <el-button v-else type="info" size="small" @click="viewAppointmentDetail(scope.row)">详情</el-button>
               </template>
             </el-table-column>
@@ -76,14 +93,138 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <el-dialog title="预约挂号" v-model="showAppointmentModal" width="500px" height="1000px">
+      <el-form :model="appointmentForm" label-width="100px">
+        <el-form-item label="就诊医生" prop="doctor">
+          <el-input :value="selectedDoctor?.name + ' - ' + selectedDoctor?.title" disabled class="doctor-info-input"></el-input>
+        </el-form-item>
+        <el-form-item label="科室" prop="department">
+          <el-input :value="selectedDoctor?.department.name" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="预约日期" prop="appointmentDate">
+          <el-date-picker v-model="appointmentForm.appointmentDate" type="date" placeholder="选择日期" :disabled="!selectedDoctor" :min-date="new Date()"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="时间段" prop="timeSlot">
+          <el-select v-model="appointmentForm.timeSlot" placeholder="选择时间段" :disabled="!selectedDoctor">
+            <el-option label="08:00-08:30" value="08:00-08:30"></el-option>
+            <el-option label="08:30-09:00" value="08:30-09:00"></el-option>
+            <el-option label="09:00-09:30" value="09:00-09:30"></el-option>
+            <el-option label="09:30-10:00" value="09:30-10:00"></el-option>
+            <el-option label="10:00-10:30" value="10:00-10:30"></el-option>
+            <el-option label="10:30-11:00" value="10:30-11:00"></el-option>
+            <el-option label="11:00-11:30" value="11:00-11:30"></el-option>
+            <el-option label="14:00-14:30" value="14:00-14:30"></el-option>
+            <el-option label="14:30-15:00" value="14:30-15:00"></el-option>
+            <el-option label="15:00-15:30" value="15:00-15:30"></el-option>
+            <el-option label="15:30-16:00" value="15:30-16:00"></el-option>
+            <el-option label="16:00-16:30" value="16:00-16:30"></el-option>
+            <el-option label="16:30-17:00" value="16:30-17:00"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="患者姓名" prop="patientName">
+          <el-input v-model="appointmentForm.patientName" placeholder="请输入患者姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="联系电话" prop="patientPhone">
+          <el-input v-model="appointmentForm.patientPhone" placeholder="请输入联系电话"></el-input>
+        </el-form-item>
+        <el-form-item label="症状描述" prop="symptoms">
+          <el-input type="textarea" v-model="appointmentForm.symptoms" placeholder="请简述症状，如：头痛、发烧、咳嗽等" :rows="4"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showAppointmentModal = false">取消</el-button>
+        <el-button type="primary" @click="submitAppointment" :loading="submitting">确认预约</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog title="预约详情" :visible.sync="showDetailModal" width="500px">
+      <div class="appointment-detail">
+        <div class="detail-row">
+          <span class="detail-label">预约编号：</span>
+          <span>{{ selectedAppointment?.appointmentId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">预约日期：</span>
+          <span>{{ formatDate(selectedAppointment?.appointmentDate) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">预约时间：</span>
+          <span>{{ selectedAppointment?.timeSlot?.startTime }} - {{ selectedAppointment?.timeSlot?.endTime }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">科室：</span>
+          <span>{{ selectedAppointment?.department }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">医生：</span>
+          <span>{{ selectedAppointment?.doctor?.name }} {{ selectedAppointment?.doctor?.title }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">患者姓名：</span>
+          <span>{{ selectedAppointment?.patientName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">联系电话：</span>
+          <span>{{ selectedAppointment?.patientPhone }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">症状描述：</span>
+          <span>{{ selectedAppointment?.symptoms || '无' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">状态：</span>
+          <el-tag :type="getStatusType(selectedAppointment?.status || '')">{{ getStatusText(selectedAppointment?.status || '') }}</el-tag>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showDetailModal = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog title="排队信息" :visible.sync="showQueueModal" width="400px">
+      <div class="queue-info">
+        <div class="queue-title">
+          <span>{{ selectedAppointment?.doctor?.name }}医生 - {{ formatDate(selectedAppointment?.appointmentDate) }}</span>
+        </div>
+        <div class="queue-number">
+          <span class="queue-label">您的排队号码：</span>
+          <span class="queue-value">第 {{ queueNumber }} 位</span>
+        </div>
+        <div class="queue-stats">
+          <div class="stat-item">
+            <span>已就诊：{{ servedCount }}人</span>
+          </div>
+          <div class="stat-item">
+            <span>等待中：{{ waitingCount }}人</span>
+          </div>
+        </div>
+        <div class="queue-tips">
+          <el-alert title="温馨提示" type="info" :closable="false">
+            请提前30分钟到达医院，凭身份证或预约信息取号就诊。
+          </el-alert>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showQueueModal = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { House } from '@element-plus/icons-vue'
 import type { Department, Doctor, Appointment } from '@/types'
+import {
+  getDepartments,
+  getDoctors,
+  getAppointments,
+  createAppointment,
+  cancelAppointment as cancelAppointmentApi,
+  initAppointmentData
+} from '@/api/appointment'
 
 const activeTab = ref<string>('departments')
 const deptSearch = ref<string>('')
@@ -96,17 +237,57 @@ const departments = ref<Department[]>([])
 const doctors = ref<Doctor[]>([])
 const myAppointments = ref<Appointment[]>([])
 const loading = ref<boolean>(false)
+const submitting = ref<boolean>(false)
+
+const showAppointmentModal = ref(false)
+const showDetailModal = ref(false)
+const showQueueModal = ref(false)
+const selectedDoctor = ref<Doctor | null>(null)
+const selectedDoctorId = ref<string>('')
+const selectedAppointment = ref<Appointment | null>(null)
+
+const queueNumber = ref(3)
+const servedCount = ref(5)
+const waitingCount = ref(8)
+
+const appointmentForm = ref({
+  appointmentDate: '',
+  timeSlot: '',
+  patientName: '',
+  patientPhone: '',
+  symptoms: ''
+})
+
+const filteredDepartments = computed(() => {
+  if (!deptSearch.value) return departments.value
+  return departments.value.filter(dept => 
+    dept.name.includes(deptSearch.value) || dept.description.includes(deptSearch.value)
+  )
+})
+
+const filteredDoctors = computed(() => {
+  let result = doctors.value || []
+  if (selectedDepartment.value) {
+    result = result.filter(d => d.department.name === selectedDepartment.value)
+  }
+  if (doctorSearch.value) {
+    result = result.filter(d => d.name.includes(doctorSearch.value))
+  }
+  return result
+})
 
 const loadDepartments = async (): Promise<void> => {
   loading.value = true
   try {
-    departments.value = [
-      { id: '1', departmentId: '1', name: '内科', description: '内科诊疗', doctorsCount: 5 },
-      { id: '2', departmentId: '2', name: '外科', description: '外科诊疗', doctorsCount: 4 },
-      { id: '3', departmentId: '3', name: '儿科', description: '儿科诊疗', doctorsCount: 3 },
-      { id: '4', departmentId: '4', name: '妇产科', description: '妇产科诊疗', doctorsCount: 6 }
-    ]
+    const res = await getDepartments()
+    departments.value = res.data
+    if (departments.value.length === 0) {
+      await initAppointmentData()
+      const initRes = await getDepartments()
+      departments.value = initRes.data
+    }
   } catch (error) {
+    console.error('获取科室列表失败:', error)
     ElMessage.error('获取科室列表失败')
   } finally {
     loading.value = false
@@ -116,20 +297,12 @@ const loadDepartments = async (): Promise<void> => {
 const loadDoctors = async (): Promise<void> => {
   loading.value = true
   try {
-    doctors.value = [
-      { 
-        doctorId: '1', 
-        name: '张医生', 
-        title: '主任医师', 
-        avatar: '', 
-        rating: 4.9, 
-        consultationCount: 1200, 
-        specialty: ['心血管', '高血压'], 
-        department: { id: '1', departmentId: '1', name: '内科', description: '内科', doctorsCount: 5 }
-      }
-    ]
+    const res: any = await getDoctors(selectedDepartment.value || undefined)
+    doctors.value = res.data?.data || res.data || []
   } catch (error) {
+    console.error('获取医生列表失败:', error)
     ElMessage.error('获取医生列表失败')
+    doctors.value = []
   } finally {
     loading.value = false
   }
@@ -138,26 +311,103 @@ const loadDoctors = async (): Promise<void> => {
 const loadMyAppointments = async (): Promise<void> => {
   loading.value = true
   try {
-    myAppointments.value = []
+    const res = await getAppointments({
+      status: appointmentStatus.value || undefined,
+      page: 1,
+      size: 100
+    })
+    myAppointments.value = res.data?.records || []
   } catch (error) {
+    console.error('获取预约列表失败:', error)
     ElMessage.error('获取预约列表失败')
   } finally {
     loading.value = false
   }
 }
 
+const handleTabChange = (tabName: string) => {
+  if (tabName === 'my-appointments') {
+    loadMyAppointments()
+  } else if (tabName === 'doctors') {
+    loadDoctors()
+  }
+}
+
 const selectDepartment = (dept: Department): void => {
-  selectedDepartment.value = dept.departmentId
+  selectedDepartment.value = String(dept.name)
   activeTab.value = 'doctors'
   loadDoctors()
 }
 
-const viewDoctorSchedule = async (doctor: Doctor): Promise<void> => {
-  ElMessage.info(`查看${doctor.name}的排班`)
+const viewDoctorSchedule = (doctor: Doctor): void => {
+  selectedDoctor.value = doctor
+  selectedDoctorId.value = String(doctor.doctorId)
+  appointmentForm.value = {
+    appointmentDate: '',
+    timeSlot: '',
+    patientName: '',
+    patientPhone: '',
+    symptoms: ''
+  }
+  showAppointmentModal.value = true
+}
+
+const submitAppointment = async (): Promise<void> => {
+  if (!selectedDoctor.value) {
+    ElMessage.error('请选择医生')
+    return
+  }
+  if (!appointmentForm.value.appointmentDate) {
+    ElMessage.error('请选择预约日期')
+    return
+  }
+  if (!appointmentForm.value.timeSlot) {
+    ElMessage.error('请选择时间段')
+    return
+  }
+  if (!appointmentForm.value.patientName) {
+    ElMessage.error('请输入患者姓名')
+    return
+  }
+  if (!appointmentForm.value.patientPhone) {
+    ElMessage.error('请输入联系电话')
+    return
+  }
+
+  const [startTime, endTime] = appointmentForm.value.timeSlot.split('-')
+  submitting.value = true
+
+  try {
+    await createAppointment({
+      doctorId: Number(selectedDoctor.value.doctorId),
+      departmentId: Number(selectedDoctor.value.department.id),
+      appointmentDate: appointmentForm.value.appointmentDate,
+      startTime,
+      endTime,
+      patientName: appointmentForm.value.patientName,
+      patientPhone: appointmentForm.value.patientPhone,
+      symptoms: appointmentForm.value.symptoms
+    })
+    ElMessage.success('预约成功')
+    showAppointmentModal.value = false
+    selectedDoctor.value = null
+    selectedDoctorId.value = ''
+    loadMyAppointments()
+  } catch (error: any) {
+    console.error('预约失败:', error)
+    const errorMessage = error.response?.data?.message || error.message || '预约失败，请稍后重试'
+    ElMessage.error(errorMessage)
+  } finally {
+    submitting.value = false
+  }
 }
 
 const viewQueue = async (appointment: Appointment): Promise<void> => {
-  ElMessage.info('查看排队信息')
+  selectedAppointment.value = appointment
+  queueNumber.value = Math.floor(Math.random() * 10) + 1
+  servedCount.value = Math.floor(Math.random() * 20)
+  waitingCount.value = Math.floor(Math.random() * 15) + 3
+  showQueueModal.value = true
 }
 
 const cancelAppointment = async (appointment: Appointment): Promise<void> => {
@@ -166,13 +416,20 @@ const cancelAppointment = async (appointment: Appointment): Promise<void> => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
-    appointment.status = 'cancelled'
-    ElMessage.success('预约已取消')
+    try {
+      await cancelAppointmentApi(String(appointment.appointmentId))
+      ElMessage.success('预约已取消')
+      loadMyAppointments()
+    } catch (error) {
+      console.error('取消预约失败:', error)
+      ElMessage.error('取消预约失败')
+    }
   }).catch(() => {})
 }
 
 const viewAppointmentDetail = async (appointment: Appointment): Promise<void> => {
-  ElMessage.info('查看预约详情')
+  selectedAppointment.value = appointment
+  showDetailModal.value = true
 }
 
 const getStatusType = (status: string): string => {
@@ -194,6 +451,21 @@ const getStatusText = (status: string): string => {
   }
   return statusMap[status] || status
 }
+
+const formatDate = (date: string | undefined): string => {
+  if (!date) return ''
+  return date
+}
+
+watch(selectedDepartment, () => {
+  loadDoctors()
+})
+
+watch(appointmentStatus, () => {
+  if (activeTab.value === 'my-appointments') {
+    loadMyAppointments()
+  }
+})
 
 onMounted(() => {
   loadDepartments()
@@ -301,6 +573,70 @@ onMounted(() => {
   color: #999;
 }
 
+.appointment-detail {
+  padding: 10px;
+}
+
+.detail-row {
+  display: flex;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-label {
+  font-weight: bold;
+  color: #666;
+  width: 100px;
+}
+
+.queue-info {
+  padding: 20px;
+}
+
+.queue-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.queue-number {
+  text-align: center;
+  padding: 20px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.queue-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.queue-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #409EFF;
+  margin-left: 10px;
+}
+
+.queue-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  font-size: 14px;
+  color: #666;
+}
+
+.queue-tips {
+  margin-top: 10px;
+}
+
 @media (max-width: 768px) {
   .departments-grid {
     grid-template-columns: 1fr;
@@ -316,6 +652,12 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .queue-stats {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
   }
 }
 </style>
