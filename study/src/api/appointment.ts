@@ -28,10 +28,10 @@ export const getDepartmentById = (id: string) => {
   return request.get<Department>(`/api/appointment/departments/${id}`)
 }
 
-export const getDoctors = (departmentName?: string) => {
+export const getDoctors = (departmentId?: string) => {
   const params: Record<string, string> = {}
-  if (departmentName) {
-    params.departmentName = departmentName
+  if (departmentId) {
+    params.departmentId = departmentId
   }
   return request.get<Doctor[]>('/api/appointment/doctors', { params })
 }

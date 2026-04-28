@@ -30,6 +30,7 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final PermissionUtil permissionUtil;
 
     @GetMapping("/departments")
     public Result<List<DepartmentVO>> getDepartments() {
@@ -68,7 +69,7 @@ public class AppointmentController {
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
     @RepeatSubmit(timeout = 3000)
     public Result<AppointmentVO> createAppointment(@Valid @RequestBody AppointmentCreateDTO dto) {
-        Long userId = PermissionUtil.getCurrentUserId();
+        Long userId = permissionUtil.getCurrentUserId();
         AppointmentVO appointment = appointmentService.createAppointment(dto, userId);
         return Result.success("预约成功", appointment);
     }
@@ -83,7 +84,7 @@ public class AppointmentController {
             @RequestParam(defaultValue = "10") Integer size) {
         
         AppointmentQueryDTO dto = new AppointmentQueryDTO();
-        dto.setUserId(PermissionUtil.getCurrentUserId());
+        dto.setUserId(permissionUtil.getCurrentUserId());
         dto.setDoctorId(doctorId);
         dto.setDepartmentId(departmentId);
         dto.setStatus(status);

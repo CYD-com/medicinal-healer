@@ -27,6 +27,7 @@ public class PermissionAspect {
 
     private final JwtUtil jwtUtil;
     private final TokenBlacklistUtil tokenBlacklistUtil;
+    private final PermissionUtil permissionUtil;
 
     @Around("@annotation(com.example.usergenerator.annotation.RequirePermission)")
     public Object checkPermission(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -38,7 +39,7 @@ public class PermissionAspect {
             String[] requiredRoles = annotation.value();
             String userRole = getUserRole();
 
-            if (!PermissionUtil.hasAnyPermission(userRole, requiredRoles)) {
+            if (!permissionUtil.hasAnyPermission(userRole, requiredRoles)) {
                 throw new BusinessException(ResultCode.FORBIDDEN);
             }
         }

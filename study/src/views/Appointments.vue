@@ -19,8 +19,8 @@
         <div class="doctors-card">
           <el-input v-model="doctorSearch" placeholder="搜索医生" prefix-icon="el-icon-search" style="margin-bottom: 20px"></el-input>
           <el-select v-model="selectedDepartment" placeholder="选择科室" style="width: 200px; margin-bottom: 20px">
-            <el-option label="全部科室" value=""></el-option>
-            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.name"></el-option>
+            <el-option :key="0" label="全部科室" :value="null"></el-option>
+            <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id"></el-option>
           </el-select>
           <el-table :data="filteredDoctors" style="width: 100%">
             <el-table-column label="医生信息" width="300">
@@ -229,7 +229,7 @@ import {
 const activeTab = ref<string>('departments')
 const deptSearch = ref<string>('')
 const doctorSearch = ref<string>('')
-const selectedDepartment = ref<string>('')
+const selectedDepartment = ref<string | null>(null)
 const appointmentSearch = ref<string>('')
 const appointmentStatus = ref<string>('')
 
@@ -268,7 +268,7 @@ const filteredDepartments = computed(() => {
 const filteredDoctors = computed(() => {
   let result = doctors.value || []
   if (selectedDepartment.value) {
-    result = result.filter(d => d.department.name === selectedDepartment.value)
+    result = result.filter(d => d.department.id === selectedDepartment.value)
   }
   if (doctorSearch.value) {
     result = result.filter(d => d.name.includes(doctorSearch.value))
@@ -297,7 +297,7 @@ const loadDepartments = async (): Promise<void> => {
 const loadDoctors = async (): Promise<void> => {
   loading.value = true
   try {
-    const res: any = await getDoctors(selectedDepartment.value || undefined)
+    const res: any = await getDoctors(selectedDepartment.value ?? undefined)
     doctors.value = res.data?.data || res.data || []
   } catch (error) {
     console.error('获取医生列表失败:', error)
@@ -334,7 +334,7 @@ const handleTabChange = (tabName: string) => {
 }
 
 const selectDepartment = (dept: Department): void => {
-  selectedDepartment.value = String(dept.name)
+  selectedDepartment.value = dept.id
   activeTab.value = 'doctors'
   loadDoctors()
 }

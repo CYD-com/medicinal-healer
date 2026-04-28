@@ -3,21 +3,21 @@ package com.example.usergenerator.util;
 import com.example.usergenerator.common.ResultCode;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.exception.BusinessException;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Component
+@RequiredArgsConstructor
 public class PermissionUtil {
 
-    private static JwtUtil jwtUtilInstance;
+    private final JwtUtil jwtUtil;
 
-    public static void setJwtUtil(JwtUtil jwtUtil) {
-        jwtUtilInstance = jwtUtil;
-    }
-
-    public static boolean hasPermission(String userRole, String requiredRole) {
+    public boolean hasPermission(String userRole, String requiredRole) {
         if (StringUtils.isBlank(userRole)) {
             return false;
         }
@@ -27,7 +27,7 @@ public class PermissionUtil {
         return userRole.equals(requiredRole);
     }
 
-    public static boolean hasAnyPermission(String userRole, String[] requiredRoles) {
+    public boolean hasAnyPermission(String userRole, String[] requiredRoles) {
         if (StringUtils.isBlank(userRole)) {
             return false;
         }
@@ -42,7 +42,7 @@ public class PermissionUtil {
         return false;
     }
 
-    public static Long getCurrentUserId() {
+    public Long getCurrentUserId() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
             throw new BusinessException(ResultCode.UNAUTHORIZED);
@@ -55,10 +55,7 @@ public class PermissionUtil {
             token = request.getHeader("X-Token");
         }
         
-        if (jwtUtilInstance == null) {
-            throw new BusinessException(ResultCode.INVALID_TOKEN, "JWT工具类未初始化");
-        }
-        Long userId = jwtUtilInstance.getUserId(token);
+        Long userId = jwtUtil.getUserId(token);
         if (userId == null) {
             throw new BusinessException(ResultCode.UNAUTHORIZED);
         }
