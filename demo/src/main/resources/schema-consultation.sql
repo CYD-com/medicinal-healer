@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS consultation (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    consultation_no VARCHAR(50) NOT NULL UNIQUE COMMENT '问诊编号',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    doctor_id BIGINT NOT NULL COMMENT '医生ID',
+    consultation_type VARCHAR(20) NOT NULL COMMENT '问诊类型：text-图文，video-视频',
+    symptom VARCHAR(200) NOT NULL COMMENT '主诉',
+    description TEXT NOT NULL COMMENT '详细描述',
+    images TEXT COMMENT '图片URL，逗号分隔',
+    medical_history TEXT COMMENT '既往病史',
+    current_medication TEXT COMMENT '当前用药',
+    status VARCHAR(20) DEFAULT 'pending' COMMENT '状态：pending-待回复，in_progress-进行中，completed-已完成，closed-已关闭',
+    created_at DATETIME NOT NULL COMMENT '创建时间',
+    updated_at DATETIME NOT NULL COMMENT '更新时间',
+    deleted TINYINT DEFAULT 0 COMMENT '删除标志：0-未删除，1-已删除',
+    INDEX idx_user_id (user_id),
+    INDEX idx_doctor_id (doctor_id),
+    INDEX idx_status (status),
+    FOREIGN KEY (user_id) REFERENCES sys_user(id),
+    FOREIGN KEY (doctor_id) REFERENCES t_doctor(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='在线问诊表';

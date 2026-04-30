@@ -7,7 +7,7 @@ export interface Department {
 }
 
 export interface Doctor {
-  doctorId: string
+  doctorId: number
   name: string
   title: string
   avatar: string

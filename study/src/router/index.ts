@@ -8,6 +8,8 @@ import Register from '@/views/Register.vue'
 import Users from '@/views/Users.vue'
 import Drugs from '@/views/drugs.vue'
 import Appointments from '@/views/Appointments.vue'
+import Consultations from '@/views/Consultations.vue'
+
 
 const routes: RouteRecordRaw[] = [
   {
@@ -45,6 +47,12 @@ const routes: RouteRecordRaw[] = [
         name: 'appointments',
         component: Appointments,
         meta: { title: '预约管理' }
+      },
+      {
+        path: '/consultations',
+        name: 'consultations',
+        component: Consultations,
+        meta: { title: '在线问诊' }
       },
       {
         path: '/users',
