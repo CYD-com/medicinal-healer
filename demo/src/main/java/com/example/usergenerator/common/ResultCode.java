@@ -28,6 +28,8 @@ public enum ResultCode {
 
     DRUG_NOT_FOUND(1007, "药品不存在"),
 
+    PRESCRIPTION_NOT_FOUND(1008, "处方不存在"),
+
     RECORD_NOT_FOUND(2001, "记录不存在"),
 
     DUPLICATE_REQUEST(3001, "请勿重复提交"),

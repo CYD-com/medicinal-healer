@@ -148,7 +148,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
 
     private String generateConsultationNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        long count = baseMapper.selectCount(null) + 1;
-        return "C" + timestamp + String.format("%03d", count);
+        long sequence = System.currentTimeMillis() % 1000000;
+        return "C" + timestamp + String.format("%06d", sequence);
     }
 }

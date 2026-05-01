@@ -8,6 +8,7 @@ import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.converter.UserConverter;
 import com.example.usergenerator.dto.user.UserLoginDTO;
 import com.example.usergenerator.dto.user.UserRegisterDTO;
+import com.example.usergenerator.dto.user.UserUpdateDTO;
 import com.example.usergenerator.dto.user.UserUpdateRoleDTO;
 import com.example.usergenerator.entity.SysUser;
 import com.example.usergenerator.exception.BusinessException;
@@ -188,6 +189,44 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setAvatar(avatar);
         this.updateById(user);
         log.info("更新用户头像成功，ID：{}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserInfo(UserUpdateDTO dto) {
+        Long userId = getCurrentUserId();
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
+
+        if (StrUtil.isNotBlank(dto.getRealName())) {
+            user.setRealName(dto.getRealName());
+        }
+        if (StrUtil.isNotBlank(dto.getGender())) {
+            user.setGender(dto.getGender());
+        }
+        if (dto.getAge() != null) {
+            user.setAge(dto.getAge());
+        }
+        if (StrUtil.isNotBlank(dto.getPhone())) {
+            user.setPhone(dto.getPhone());
+        }
+        if (StrUtil.isNotBlank(dto.getEmail())) {
+            user.setEmail(dto.getEmail());
+        }
+        if (StrUtil.isNotBlank(dto.getIdCard())) {
+            user.setIdCard(dto.getIdCard());
+        }
+        if (StrUtil.isNotBlank(dto.getAddress())) {
+            user.setAddress(dto.getAddress());
+        }
+        if (StrUtil.isNotBlank(dto.getAvatar())) {
+            user.setAvatar(dto.getAvatar());
+        }
+
+        this.updateById(user);
+        log.info("更新用户信息成功，ID：{}", userId);
     }
 
     @Override

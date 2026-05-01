@@ -37,8 +37,18 @@ export interface Appointment {
 export interface User {
   id: string
   username: string
+  realName?: string
+  gender?: string
+  age?: number
+  phone?: string
+  email?: string
+  idCard?: string
+  address?: string
   role: string
   avatar?: string
+  status?: number
+  createTime?: string
+  updateTime?: string
 }
 
 export interface RecordForm {
@@ -82,11 +92,19 @@ export interface RegisterForm extends LoginForm {
 }
 
 export interface UserInfo {
-  email: string
-  gender: string
-  age: number
-  registerDate: string
-  avatar: string
+  id?: number
+  username?: string
+  realName?: string
+  gender?: string
+  age?: number
+  phone?: string
+  email?: string
+  idCard?: string
+  address?: string
+  avatar?: string
+  role?: string
+  createTime?: string
+  updateTime?: string
 }
 
 export interface EditDialogForm {
@@ -143,4 +161,40 @@ export interface InventorySummary {
   lowStock: number
   outOfStock: number
   expiringSoon: number
+}
+
+export interface PrescriptionDoctor {
+  id: number
+  name: string
+  title: string
+  avatar: string
+  department: string
+  signature?: string
+}
+
+export interface PrescriptionDrugItem {
+  id: number
+  drugId: string
+  drugName: string
+  specification: string
+  dosage: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  amount: number
+}
+
+export interface Prescription {
+  id: number
+  prescriptionNo: string
+  doctor: PrescriptionDoctor
+  diagnosis: string
+  doctorAdvice: string
+  totalAmount: number
+  drugCount: number
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'expired'
+  statusText: string
+  validUntil: string
+  createdAt: string
+  drugs: PrescriptionDrugItem[]
 }

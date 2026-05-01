@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.usergenerator.mapper.DoctorMapper">
     <resultMap id="BaseResultMap" type="com.example.usergenerator.entity.Doctor">
-        <id column="id" property="id"/>
+        <id column="doctor_id" property="id"/>
         <result column="name" property="name"/>
         <result column="title" property="title"/>
         <result column="avatar" property="avatar"/>
@@ -11,17 +11,17 @@
         <result column="specialty" property="specialty"/>
         <result column="department_id" property="departmentId"/>
     </resultMap>
-    <sql id="Base_Column_List">id, name, title, avatar, rating, consultation_count, specialty, department_id</sql>
+    <sql id="Base_Column_List">doctor_id, name, title, avatar, rating, consultation_count, specialty, department_id</sql>
     <select id="selectAllDoctors" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/> FROM t_doctor ORDER BY id ASC
+        SELECT <include refid="Base_Column_List"/> FROM t_doctor ORDER BY doctor_id ASC
     </select>
     <select id="selectDoctorsByDepartmentId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/> FROM t_doctor WHERE department_id = #{departmentId} ORDER BY id ASC
+        SELECT <include refid="Base_Column_List"/> FROM t_doctor WHERE department_id = #{departmentId} ORDER BY doctor_id ASC
     </select>
     <select id="selectDoctorsByDepartmentName" resultMap="BaseResultMap">
-        SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE dept.name = #{departmentName} ORDER BY d.id ASC
+        SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE dept.name = #{departmentName} ORDER BY d.doctor_id ASC
     </select>
     <select id="selectDoctorWithDepartment" resultMap="BaseResultMap">
-        SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE d.id = #{doctorId}
+        SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE d.doctor_id = #{doctorId}
     </select>
 </mapper>

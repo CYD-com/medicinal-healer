@@ -65,3 +65,20 @@ export function getUserInfo() {
     method: 'get'
   })
 }
+
+export function updateUserInfo(data: {
+  realName?: string
+  gender?: string
+  age?: number
+  phone?: string
+  email?: string
+  idCard?: string
+  address?: string
+  avatar?: string
+}) {
+  return request({
+    url: '/api/user/info',
+    method: 'put',
+    data
+  })
+}

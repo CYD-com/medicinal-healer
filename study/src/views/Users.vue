@@ -1,237 +1,297 @@
 <template>
-  <div class="users-page">
-    <div class="table-header">
-      <h3>用户列表</h3>
-      <div class="header-right">
-        <el-input
-          v-model="searchKeyword"
-          placeholder="请输入用户名搜索"
-          clearable
-          style="width: 200px; margin-right: 10px;"
-          @keyup.enter="handleSearch"
-        />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
-        <el-button type="primary" @click="handleAdd">添加用户</el-button>
+  <div class="users-container">
+    <h2>用户管理</h2>
+    <div class="users-card">
+      <div class="toolbar">
+        <el-button type="primary" @click="showAddDialog">添加用户</el-button>
       </div>
+      <el-table :data="userList" style="width: 100%" v-loading="loading">
+        <el-table-column prop="id" label="ID" width="80"></el-table-column>
+        <el-table-column prop="username" label="用户名" width="120"></el-table-column>
+        <el-table-column prop="realName" label="真实姓名" width="120">
+          <template #default="scope">
+            {{ scope.row.realName || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="gender" label="性别" width="80">
+          <template #default="scope">
+            {{ getGenderText(scope.row.gender) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" width="130">
+          <template #default="scope">
+            {{ scope.row.phone || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="email" label="邮箱" width="180">
+          <template #default="scope">
+            {{ scope.row.email || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="role" label="角色" width="100">
+          <template #default="scope">
+            <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'success'">
+              {{ scope.row.role === 'admin' ? '管理员' : '用户' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="scope">
+            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
+              {{ scope.row.status === 1 ? '启用' : '禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="180">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.createTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="editUser(scope.row)">编辑</el-button>
+            <el-button type="danger" size="small" @click="deleteUser(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </div>
 
-    <el-table :data="tableData" border stripe>
-      <el-table-column prop="id" label="序号" width="80" />
-      <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="role" label="角色">
-        <template #default="scope">
-          <el-tag v-if="scope.row.role === 'admin'" type="danger">管理员</el-tag>
-          <el-tag v-else type="success">用户</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column label="操作" width="180">
-        <template #default="scope">
-          <el-button type="text" @click="handleToggleRole(scope.row)" :disabled="scope.row.username === userStore.username">
-            {{ scope.row.role === 'admin' ? '设为用户' : '设为管理员' }}
-          </el-button>
-          <el-button type="text" danger @click="handleDelete(scope.row.id)" :disabled="scope.row.username === userStore.username">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <el-pagination
-      v-model:current-page="page"
-      v-model:page-size="size"
-      :total="total"
-      layout="total, prev, pager, next, jumper"
-      @size-change="getList"
-      @current-change="getList"
-      style="margin-top: 20px; text-align: right"
-    />
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px">
+      <el-form :model="userForm" label-width="100px">
+        <el-form-item label="用户名" required>
+          <el-input v-model="userForm.username" placeholder="请输入用户名"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" v-if="!isEdit" required>
+          <el-input v-model="userForm.password" type="password" placeholder="请输入密码"></el-input>
+        </el-form-item>
+        <el-form-item label="真实姓名">
+          <el-input v-model="userForm.realName" placeholder="请输入真实姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-radio-group v-model="userForm.gender">
+            <el-radio label="male">男</el-radio>
+            <el-radio label="female">女</el-radio>
+            <el-radio label="other">其他</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="年龄">
+          <el-input-number v-model="userForm.age" :min="1" :max="150"></el-input-number>
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="userForm.phone" placeholder="请输入手机号"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="userForm.email" placeholder="请输入邮箱"></el-input>
+        </el-form-item>
+        <el-form-item label="身份证号">
+          <el-input v-model="userForm.idCard" placeholder="请输入身份证号"></el-input>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input v-model="userForm.address" type="textarea" :rows="2" placeholder="请输入地址"></el-input>
+        </el-form-item>
+        <el-form-item label="角色" required>
+          <el-select v-model="userForm.role" placeholder="请选择角色">
+            <el-option label="用户" value="user"></el-option>
+            <el-option label="管理员" value="admin"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-switch v-model="userForm.status" :active-value="1" :inactive-value="0"></el-switch>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
-
-  <el-dialog v-model="dialogVisible" title="添加用户">
-    <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
-      <el-form-item label="用户名" prop="username">
-        <el-input v-model="form.username" />
-      </el-form-item>
-      <el-form-item label="密码" prop="password">
-        <el-input v-model="form.password" type="password" />
-      </el-form-item>
-      <el-form-item label="角色" prop="role">
-        <el-select v-model="form.role" placeholder="请选择角色">
-          <el-option label="用户" value="user" />
-          <el-option label="管理员" value="admin" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="handleCancel">取消</el-button>
-      <el-button type="primary" @click="handleSubmit">确认</el-button>
-    </template>
-  </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
-import { ElMessage, ElMessageBox } from "element-plus"
-import type { FormInstance, FormRules } from "element-plus"
-import { useUserStore } from '@/stores/user'
-import type { UserForm, UserItem } from '@/types'
-import { getUserList, addUser, deleteUser, updateUserRole } from '@/api/user'
+import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getUserList, addUser, updateUser, deleteUser as deleteUserApi } from '@/api/user'
 
-const userStore = useUserStore()
-const tableData = ref<UserItem[]>([])
-const allTableData = ref<UserItem[]>([])
-const page = ref<number>(1)
-const size = ref<number>(10)
-const total = ref<number>(0)
-const dialogVisible = ref<boolean>(false)
-const searchKeyword = ref<string>("")
-const formRef = ref<FormInstance>()
-const form = ref<UserForm>({
-  username: "",
-  password: "",
-  role: "user",
-})
-const rules = ref<FormRules<UserForm>>({
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
-  role: [{ required: true, message: "请选择角色", trigger: "change" }],
+interface UserItem {
+  id: number
+  username: string
+  realName?: string
+  gender?: string
+  age?: number
+  phone?: string
+  email?: string
+  idCard?: string
+  address?: string
+  avatar?: string
+  role: string
+  status?: number
+  createTime?: string
+  updateTime?: string
+}
+
+const userList = ref<UserItem[]>([])
+const loading = ref(false)
+const dialogVisible = ref(false)
+const dialogTitle = ref('添加用户')
+const isEdit = ref(false)
+
+const userForm = ref({
+  id: null as number | null,
+  username: '',
+  password: '',
+  realName: '',
+  gender: '',
+  age: null as number | null,
+  phone: '',
+  email: '',
+  idCard: '',
+  address: '',
+  role: 'user',
+  status: 1
 })
 
-const getList = async (): Promise<void> => {
+const loadUserList = async () => {
+  loading.value = true
   try {
-    const response: any = await getUserList()
-    if (response.code === 200) {
-      allTableData.value = response.data || []
-      filterData()
-    } else {
-      ElMessage.error(response.msg || '获取用户列表失败')
+    const res: any = await getUserList()
+    if (res.code === 200) {
+      userList.value = res.data || []
     }
   } catch (error) {
-    ElMessage.error('获取用户列表失败')
     console.error('获取用户列表失败:', error)
+    ElMessage.error('获取用户列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
-const filterData = (): void => {
-  let filteredData = allTableData.value
-  
-  if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.trim().toLowerCase()
-    filteredData = filteredData.filter(user => 
-      user.username.toLowerCase().includes(keyword)
-    )
-  }
-  
-  total.value = filteredData.length
-  
-  // 分页
-  const start = (page.value - 1) * size.value
-  const end = start + size.value
-  tableData.value = filteredData.slice(start, end)
-}
-
-const handleSearch = (): void => {
-  page.value = 1
-  filterData()
-}
-
-const handleReset = (): void => {
-  searchKeyword.value = ""
-  page.value = 1
-  filterData()
-}
-
-const handleAdd = (): void => {
-  form.value = {
-    username: "",
-    password: "",
-    role: "user",
+const showAddDialog = () => {
+  isEdit.value = false
+  dialogTitle.value = '添加用户'
+  userForm.value = {
+    id: null,
+    username: '',
+    password: '',
+    realName: '',
+    gender: '',
+    age: null,
+    phone: '',
+    email: '',
+    idCard: '',
+    address: '',
+    role: 'user',
+    status: 1
   }
   dialogVisible.value = true
 }
 
-const handleSubmit = async (): Promise<void> => {
+const editUser = (user: UserItem) => {
+  isEdit.value = true
+  dialogTitle.value = '编辑用户'
+  userForm.value = {
+    id: user.id,
+    username: user.username,
+    password: '',
+    realName: user.realName || '',
+    gender: user.gender || '',
+    age: user.age || null,
+    phone: user.phone || '',
+    email: user.email || '',
+    idCard: user.idCard || '',
+    address: user.address || '',
+    role: user.role,
+    status: user.status ?? 1
+  }
+  dialogVisible.value = true
+}
+
+const handleSubmit = async () => {
+  if (!userForm.value.username) {
+    ElMessage.warning('请输入用户名')
+    return
+  }
+  if (!isEdit.value && !userForm.value.password) {
+    ElMessage.warning('请输入密码')
+    return
+  }
+
   try {
-    await formRef.value?.validate()
-    
-    const response: any = await addUser(form.value.username, form.value.password, form.value.role)
-    if (response.code === 200) {
+    if (isEdit.value) {
+      await updateUser(String(userForm.value.id!), userForm.value.role)
+      ElMessage.success('更新成功')
+    } else {
+      await addUser(userForm.value.username, userForm.value.password, userForm.value.role)
       ElMessage.success('添加成功')
-    } else {
-      ElMessage.error(response.msg || '添加失败')
     }
-    
     dialogVisible.value = false
-    getList()
+    loadUserList()
   } catch (error) {
-    ElMessage.error("操作失败")
+    ElMessage.error('操作失败')
   }
 }
 
-const handleCancel = (): void => {
-  formRef.value?.resetFields()
-  dialogVisible.value = false
-}
-
-const handleToggleRole = async (row: UserItem): Promise<void> => {
-  try {
-    const newRole = row.role === 'admin' ? 'user' : 'admin'
-    const action = newRole === 'admin' ? '设为管理员' : '设为用户'
-    await ElMessageBox.confirm(`确定要将用户 ${row.username} ${action}吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    
-    const response: any = await updateUserRole(row.id, newRole)
-    if (response.code === 200) {
-      ElMessage.success("角色修改成功")
-      getList()
-    } else {
-      ElMessage.error(response.msg || '角色修改失败')
-    }
-  } catch (error) {
-    console.log('取消操作')
-  }
-}
-
-const handleDelete = async (id: string): Promise<void> => {
+const deleteUser = async (user: UserItem) => {
   try {
     await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
-    const response: any = await deleteUser(id)
-    if (response.code === 200) {
-      ElMessage.success("删除成功")
-      getList()
-    } else {
-      ElMessage.error(response.msg || '删除失败')
-    }
+    await deleteUserApi(String(user.id))
+    ElMessage.success('删除成功')
+    loadUserList()
   } catch (error) {
-    console.log('取消删除')
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
   }
 }
 
+const getGenderText = (gender?: string) => {
+  const map: Record<string, string> = {
+    male: '男',
+    female: '女',
+    other: '其他'
+  }
+  return gender ? map[gender] || '-' : '-'
+}
+
+const formatDateTime = (dateTime?: string) => {
+  if (!dateTime) return '-'
+  return new Date(dateTime).toLocaleString('zh-CN')
+}
+
 onMounted(() => {
-  getList()
+  loadUserList()
 })
 </script>
 
 <style scoped>
-.users-page {
+.users-container {
   padding: 20px;
 }
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+.users-container h2 {
   margin-bottom: 20px;
+  color: #333;
 }
-.header-right {
+
+.users-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.toolbar {
+  margin-bottom: 16px;
+}
+
+.dialog-footer {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style>

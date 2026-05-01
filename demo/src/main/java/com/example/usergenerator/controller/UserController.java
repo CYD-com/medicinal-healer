@@ -6,6 +6,7 @@ import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.user.UserLoginDTO;
 import com.example.usergenerator.dto.user.UserRegisterDTO;
+import com.example.usergenerator.dto.user.UserUpdateDTO;
 import com.example.usergenerator.dto.user.UserUpdateRoleDTO;
 import com.example.usergenerator.dto.user.AvatarUpdateDTO;
 import com.example.usergenerator.service.SysUserService;
@@ -169,5 +170,12 @@ public class UserController {
     public Result<UserVO> getCurrentUserInfo() {
         UserVO userVO = sysUserService.getCurrentUserInfo();
         return Result.success("查询成功", userVO);
+    }
+
+    @PutMapping("/info")
+    @RequirePermission(RoleConstants.USER)
+    public Result<Void> updateUserInfo(@Valid @RequestBody UserUpdateDTO dto) {
+        sysUserService.updateUserInfo(dto);
+        return Result.success("更新成功");
     }
 }

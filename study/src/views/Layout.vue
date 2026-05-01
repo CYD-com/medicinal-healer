@@ -28,6 +28,9 @@
           <router-link to="/consultations" class="sidebar-item" active-class="active">
             在线问诊
           </router-link>  
+          <router-link to="/prescriptions" class="sidebar-item" active-class="active">
+            处方管理
+          </router-link>  
           <router-link to="/appointments" class="sidebar-item" active-class="active">
             预约挂号
           </router-link>

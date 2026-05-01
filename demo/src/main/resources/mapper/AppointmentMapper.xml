@@ -30,7 +30,7 @@
         SELECT <include refid="Base_Column_List"/> FROM t_appointment WHERE appointment_date = #{appointmentDate} ORDER BY start_time ASC
     </select>
     <select id="selectAppointmentWithDetails" resultMap="BaseResultMap">
-        SELECT a.* FROM t_appointment a LEFT JOIN t_doctor d ON a.doctor_id = d.id LEFT JOIN t_department dept ON a.department_id = dept.id WHERE a.id = #{id}
+        SELECT a.* FROM t_appointment a LEFT JOIN t_doctor d ON a.doctor_id = d.doctor_id LEFT JOIN t_department dept ON a.department_id = dept.id WHERE a.id = #{id}
     </select>
     <select id="countAppointmentsByDoctorAndDate" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM t_appointment WHERE doctor_id = #{doctorId} AND appointment_date = #{appointmentDate}

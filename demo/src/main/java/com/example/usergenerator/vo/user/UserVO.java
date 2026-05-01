@@ -17,9 +17,27 @@ public class UserVO {
 
     private String username;
 
-    private String role;
+    private String realName;
+
+    private String gender;
+
+    private Integer age;
+
+    private String phone;
+
+    private String email;
+
+    private String idCard;
+
+    private String address;
 
     private String avatar;
 
+    private String role;
+
+    private Integer status;
+
     private LocalDateTime createTime;
+
+    private LocalDateTime updateTime;
 }

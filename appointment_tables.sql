@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `t_department` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='科室表';
 
 CREATE TABLE IF NOT EXISTS `t_doctor` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '医生ID',
+  `doctor_id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '医生ID',
   `name` VARCHAR(100) NOT NULL COMMENT '医生姓名',
   `title` VARCHAR(50) COMMENT '职称',
   `avatar` VARCHAR(500) COMMENT '头像URL',
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `t_appointment` (
   INDEX `idx_appointment_date` (`appointment_date`),
   INDEX `idx_appointment_status` (`status`),
   FOREIGN KEY (`user_id`) REFERENCES `sys_user`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`doctor_id`) REFERENCES `t_doctor`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`doctor_id`) REFERENCES `t_doctor`(`doctor_id`) ON DELETE CASCADE,
   FOREIGN KEY (`department_id`) REFERENCES `t_department`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='预约表';
 

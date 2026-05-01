@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @TableName("drugs")
 public class Drug {
 
-    @TableId(type = IdType.ASSIGN_UUID)
+    @TableId(value = "drug_id", type = IdType.ASSIGN_UUID)
     private String id;
     private String drugName;
     private String genericName;

@@ -3,6 +3,7 @@ package com.example.usergenerator.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.usergenerator.dto.user.UserLoginDTO;
 import com.example.usergenerator.dto.user.UserRegisterDTO;
+import com.example.usergenerator.dto.user.UserUpdateDTO;
 import com.example.usergenerator.dto.user.UserUpdateRoleDTO;
 import com.example.usergenerator.entity.SysUser;
 import com.example.usergenerator.vo.user.UserGenerateVO;
@@ -30,6 +31,8 @@ public interface SysUserService extends IService<SysUser> {
     void deleteUser(Long id);
 
     void updateAvatar(String avatar);
+
+    void updateUserInfo(UserUpdateDTO dto);
 
     UserVO getCurrentUserInfo();
 }
