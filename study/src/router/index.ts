@@ -10,6 +10,7 @@ import Drugs from '@/views/drugs.vue'
 import Appointments from '@/views/Appointments.vue'
 import Consultations from '@/views/Consultations.vue'
 import Prescriptions from '@/views/Prescriptions.vue'
+import HealthRecords from '@/views/HealthRecords.vue'
 
 
 const routes: RouteRecordRaw[] = [
@@ -62,11 +63,17 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '处方管理' }
       },
       {
+        path: '/healthRecords',
+        name: 'healthRecords',
+        component: HealthRecords,
+        meta: { title: '健康档案' }
+      },
+      {
         path: '/users',
         name: 'users',
         component: Users,
         meta: { title: '用户管理' }
-      }
+      }     
     ]
   },
   {

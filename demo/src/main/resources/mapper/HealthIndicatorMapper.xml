@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usergenerator.mapper.HealthIndicatorMapper">
+
+    <select id="selectByUserIdAndType" resultType="com.example.usergenerator.entity.HealthIndicator">
+        SELECT id, user_id, indicator_type, systolic, diastolic, heart_rate,
+               record_date, record_time, remark, source, created_at
+        FROM health_indicator
+        WHERE user_id = #{userId} AND indicator_type = #{indicatorType}
+        ORDER BY record_date DESC, record_time DESC
+    </select>
+
+</mapper>

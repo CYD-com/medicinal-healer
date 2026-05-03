@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usergenerator.mapper.AllergyMapper">
+    <select id="selectByUserId" resultType="com.example.usergenerator.entity.Allergy">
+        SELECT id, user_id, allergen, reaction, severity, created_at
+        FROM allergy
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+</mapper>

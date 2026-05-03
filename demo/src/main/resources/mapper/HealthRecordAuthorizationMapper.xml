@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usergenerator.mapper.HealthRecordAuthorizationMapper">
+    <select id="selectByUserId" resultType="com.example.usergenerator.entity.HealthRecordAuthorization">
+        SELECT id, user_id, target_type, target_id, permissions,
+               authorized_at, expires_at, status, created_at
+        FROM health_record_authorization
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+</mapper>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usergenerator.mapper.SurgicalHistoryMapper">
+    <select id="selectByUserId" resultType="com.example.usergenerator.entity.SurgicalHistory">
+        SELECT id, user_id, surgery_name, surgery_date, hospital, recovery, created_at
+        FROM surgical_history
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+</mapper>

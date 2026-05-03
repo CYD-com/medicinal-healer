@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.usergenerator.mapper.VisitRecordMapper">
+
+    <select id="selectByUserId" resultType="com.example.usergenerator.entity.VisitRecord">
+        SELECT id, user_id, visit_type, visit_date, department, doctor_id,
+               chief_complaint, diagnosis, treatment, prescription_id, created_at
+        FROM visit_record
+        WHERE user_id = #{userId}
+        ORDER BY visit_date DESC
+    </select>
+
+</mapper>
