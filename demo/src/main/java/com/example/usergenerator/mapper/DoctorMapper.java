@@ -17,4 +17,6 @@ public interface DoctorMapper extends BaseMapper<Doctor> {
     List<Doctor> selectDoctorsByDepartmentName(@Param("departmentName") String departmentName);
 
     Doctor selectDoctorWithDepartment(@Param("doctorId") Long doctorId);
+
+    Doctor selectByUserId(@Param("userId") Long userId);
 }

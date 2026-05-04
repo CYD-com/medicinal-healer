@@ -6,5 +6,5 @@ public interface RoleConstants {
 
     String ADMIN = "admin";
 
-    String PRODUCT_MANAGER = "product_manager";
+    String DOCTOR = "doctor";
 }

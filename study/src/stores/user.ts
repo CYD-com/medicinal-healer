@@ -1,27 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import { login as loginApi, logout as logoutApi, register as registerApi } from '@/api/login'
-import { useRequest } from '@/composables/useRequest'
 
 interface UserInfo {
   id?: string
   username?: string
   role?: string
   [key: string]: any
-}
-
-interface LoginResponse {
-  code: number
-  msg: string
-  data: {
-    token: string
-    role: string
-  }
-}
-
-interface RegisterResponse {
-  code: number
-  msg: string
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -32,6 +18,12 @@ export const useUserStore = defineStore('user', () => {
 
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => role.value === 'admin')
+  const isDoctor = computed(() => role.value === 'doctor')
+  const user = computed(() => ({
+    id: userInfo.value?.id,
+    username: username.value,
+    role: role.value
+  }))
 
   const setToken = (newToken: string, remember: boolean = false) => {
     token.value = newToken
@@ -64,73 +56,66 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = info
   }
 
-  const login = async (username: string, password: string, remember: boolean = false): Promise<boolean> => {
-    const { showLoading, hideLoading, showError, showSuccess } = useRequest()
-    
+  const clearUser = () => {
+    token.value = ''
+    username.value = ''
+    role.value = ''
+    userInfo.value = null
+    localStorage.removeItem('token')
+    localStorage.removeItem('username')
+    localStorage.removeItem('role')
+    localStorage.removeItem('userInfo')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('username')
+    sessionStorage.removeItem('role')
+    sessionStorage.removeItem('userInfo')
+  }
+
+  const login = async (username: string, password: string, remember: boolean = false, loginRole?: string): Promise<boolean> => {
     try {
-      showLoading('登录中...')
-      const response: any = await loginApi(username, password)
-      
+      const response: any = await loginApi(username, password, loginRole)
+
       if (response.code === 200) {
         setToken(response.data.token, remember)
         setUsername(username, remember)
         setRole(response.data.role || 'user', remember)
-        showSuccess(response.msg || '登录成功')
+        ElMessage.success(response.msg || '登录成功')
         return true
       } else {
-        showError(response.msg || '登录失败')
+        ElMessage.error(response.msg || '登录失败')
         return false
       }
     } catch (error: any) {
-      showError(error.message || '登录失败')
+      ElMessage.error(error.message || '登录失败')
       return false
-    } finally {
-      hideLoading()
     }
   }
 
   const logout = async (): Promise<void> => {
-    const { showSuccess, showError } = useRequest()
-    
     try {
       const response: any = await logoutApi()
-      showSuccess(response?.msg || '退出登录成功')
+      ElMessage.success(response?.msg || '退出登录成功')
     } catch (error: any) {
       console.error('退出登录失败:', error)
-      showError('退出登录失败')
     } finally {
-      token.value = ''
-      username.value = ''
-      role.value = ''
-      userInfo.value = null
-      localStorage.removeItem('token')
-      localStorage.removeItem('username')
-      localStorage.removeItem('role')
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('username')
-      sessionStorage.removeItem('role')
+      clearUser()
     }
   }
 
   const register = async (username: string, password: string, code?: string, uuid?: string): Promise<boolean> => {
-    const { showLoading, hideLoading, showError, showSuccess } = useRequest()
-    
     try {
-      showLoading('注册中...')
       const response: any = await registerApi(username, password, code || '', uuid || '')
-      
+
       if (response.code === 200) {
-        showSuccess(response.msg || '注册成功')
+        ElMessage.success(response.msg || '注册成功')
         return true
       } else {
-        showError(response.msg || '注册失败')
+        ElMessage.error(response.msg || '注册失败')
         return false
       }
     } catch (error: any) {
-      showError(error.message || '注册失败')
+      ElMessage.error(error.message || '注册失败')
       return false
-    } finally {
-      hideLoading()
     }
   }
 
@@ -141,10 +126,13 @@ export const useUserStore = defineStore('user', () => {
     userInfo,
     isLoggedIn,
     isAdmin,
+    isDoctor,
+    user,
     setToken,
     setUsername,
     setRole,
     setUserInfo,
+    clearUser,
     login,
     logout,
     register

@@ -10,6 +10,8 @@ public class UserLoginDTO {
     @NotBlank(message = "密码不能为空")
     private String password;
 
+    private String loginRole;
+
     public String getUsername() {
         return username;
     }
@@ -24,5 +26,13 @@ public class UserLoginDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getLoginRole() {
+        return loginRole;
+    }
+
+    public void setLoginRole(String loginRole) {
+        this.loginRole = loginRole;
     }
 }

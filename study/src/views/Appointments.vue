@@ -373,6 +373,10 @@ const submitAppointment = async (): Promise<void> => {
     ElMessage.error('请输入联系电话')
     return
   }
+  if (!/^1[3-9]\d{9}$/.test(appointmentForm.value.patientPhone)) {
+    ElMessage.error('请输入正确的手机号')
+    return
+  }
 
   const [startTime, endTime] = appointmentForm.value.timeSlot.split('-')
   submitting.value = true

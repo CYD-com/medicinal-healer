@@ -4,6 +4,8 @@ import com.example.usergenerator.annotation.RequirePermission;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.consultation.ConsultationCreateDTO;
+import com.example.usergenerator.entity.Doctor;
+import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.ConsultationService;
 import com.example.usergenerator.util.PermissionUtil;
 import com.example.usergenerator.vo.consultation.ConsultationVO;
@@ -24,6 +26,7 @@ public class ConsultationController {
 
     private final ConsultationService consultationService;
     private final PermissionUtil permissionUtil;
+    private final DoctorMapper doctorMapper;
 
     @PostMapping("/create")
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
@@ -62,5 +65,53 @@ public class ConsultationController {
             return Result.error(400, "取消失败，问诊记录不存在或已处理");
         }
         return Result.success("取消成功", consultation);
+    }
+
+    // 医生端 - 获取待处理问诊列表
+    @GetMapping("/doctor/list")
+    @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<List<ConsultationVO>> getDoctorConsultations(
+            @RequestParam(required = false) String status) {
+        Long userId = permissionUtil.getCurrentUserId();
+        Doctor doctor = doctorMapper.selectByUserId(userId);
+        if (doctor == null) {
+            return Result.error(404, "医生信息不存在");
+        }
+        List<ConsultationVO> consultations = consultationService.getConsultationsByDoctorId(doctor.getId(), status);
+        return Result.success("查询成功", consultations);
+    }
+
+    // 医生端 - 回复问诊
+    @PutMapping("/{id}/reply")
+    @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<ConsultationVO> replyConsultation(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
+        Long userId = permissionUtil.getCurrentUserId();
+        Doctor doctor = doctorMapper.selectByUserId(userId);
+        if (doctor == null) {
+            return Result.error(404, "医生信息不存在");
+        }
+        String doctorReply = body.get("doctorReply");
+        String diagnosis = body.get("diagnosis");
+        String status = body.getOrDefault("status", "in_progress");
+        ConsultationVO consultation = consultationService.updateConsultationByDoctor(id, doctor.getId(), doctorReply, diagnosis, status);
+        return Result.success("回复成功", consultation);
+    }
+
+    // 医生端 - 完成问诊
+    @PutMapping("/{id}/complete")
+    @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<ConsultationVO> completeConsultation(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
+        Long userId = permissionUtil.getCurrentUserId();
+        Doctor doctor = doctorMapper.selectByUserId(userId);
+        if (doctor == null) {
+            return Result.error(404, "医生信息不存在");
+        }
+        String diagnosis = body.get("diagnosis");
+        ConsultationVO consultation = consultationService.updateConsultationByDoctor(id, doctor.getId(), null, diagnosis, "completed");
+        return Result.success("问诊已完成", consultation);
     }
 }

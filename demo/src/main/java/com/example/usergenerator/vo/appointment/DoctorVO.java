@@ -28,4 +28,6 @@ public class DoctorVO {
     private List<String> specialty;
 
     private DepartmentVO department;
+
+    private Long userId;
 }

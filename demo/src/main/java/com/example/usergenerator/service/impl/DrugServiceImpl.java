@@ -166,9 +166,9 @@ public class DrugServiceImpl implements DrugService {
         Page<Drug> page = new Page<>(query.getPage(), query.getSize());
         LambdaQueryWrapper<Drug> wrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(query.getDrugName())) {
-            wrapper.like(Drug::getDrugName, query.getDrugName())
-                   .or()
-                   .like(Drug::getSpecification, query.getDrugName());
+            wrapper.and(w -> w.like(Drug::getDrugName, query.getDrugName())
+                    .or()
+                    .like(Drug::getSpecification, query.getDrugName()));
         }
         if (StringUtils.hasText(query.getCategory())) {
             wrapper.eq(Drug::getCategory, query.getCategory());

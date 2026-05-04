@@ -5,6 +5,7 @@ import com.example.usergenerator.dto.healthRecord.IndicatorCreateDTO;
 import com.example.usergenerator.dto.healthRecord.MedicalHistoryUpdateDTO;
 import com.example.usergenerator.entity.*;
 import com.example.usergenerator.mapper.*;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.usergenerator.service.HealthRecordService;
 import com.example.usergenerator.vo.healthRecord.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -195,8 +196,24 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    public java.util.Map<String, Object> getVisits(Long userId, String type, String startDate, String endDate) {
-        List<VisitRecord> records = visitRecordMapper.selectByUserId(userId);
+    public java.util.Map<String, Object> getVisits(Long userId, String type, String startDate, String endDate, String doctorId) {
+        QueryWrapper<VisitRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        if (type != null && !type.isEmpty()) {
+            queryWrapper.eq("visit_type", type);
+        }
+        if (startDate != null && !startDate.isEmpty()) {
+            queryWrapper.ge("visit_date", startDate);
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            queryWrapper.le("visit_date", endDate);
+        }
+        if (doctorId != null && !doctorId.isEmpty()) {
+            queryWrapper.eq("doctor_id", doctorId);
+        }
+        queryWrapper.orderByDesc("visit_date");
+
+        List<VisitRecord> records = visitRecordMapper.selectList(queryWrapper);
 
         List<VisitRecordVO> voList = records.stream().map(record -> {
             VisitRecordVO vo = new VisitRecordVO();

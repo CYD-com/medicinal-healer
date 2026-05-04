@@ -66,6 +66,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(ResultCode.INVALID_CREDENTIALS);
         }
 
+        if (dto.getLoginRole() != null && !dto.getLoginRole().isEmpty()
+                && !dto.getLoginRole().equals(user.getRole())) {
+            throw new BusinessException(ResultCode.ROLE_MISMATCH);
+        }
+
         String token = generateToken(user);
         UserVO userVO = userConverter.toVO(user);
 

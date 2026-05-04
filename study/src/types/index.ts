@@ -51,25 +51,6 @@ export interface User {
   updateTime?: string
 }
 
-export interface RecordForm {
-  id?: number
-  category: string
-  type: string
-  status: string
-  amount: number
-  time: string
-}
-
-export interface RecordItem extends RecordForm {
-  id: number
-}
-
-export interface SearchForm {
-  category: string
-  type: string
-  status: string
-}
-
 export interface UserForm {
   username: string
   password: string
@@ -84,6 +65,7 @@ export interface UserItem extends UserForm {
 export interface LoginForm {
   username: string
   password: string
+  loginRole?: string
 }
 
 export interface RegisterForm extends LoginForm {

@@ -77,7 +77,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getUserInfo, updateUserInfo, updateAvatar } from '@/api/user'
+import { getUserInfo, updateUserInfo, updateAvatar, uploadAvatar } from '@/api/user'
 
 const router = useRouter()
 const activeTab = ref('info')

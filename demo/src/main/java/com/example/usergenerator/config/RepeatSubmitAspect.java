@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import com.example.usergenerator.util.JwtUtil;
 
 @Slf4j
 @Aspect
@@ -22,10 +23,12 @@ import java.util.concurrent.TimeUnit;
 public class RepeatSubmitAspect {
 
     private final HttpServletRequest request;
+    private final JwtUtil jwtUtil;
     private final Map<String, Long> submitRecordMap = new ConcurrentHashMap<>();
 
-    public RepeatSubmitAspect(HttpServletRequest request) {
+    public RepeatSubmitAspect(HttpServletRequest request, JwtUtil jwtUtil) {
         this.request = request;
+        this.jwtUtil = jwtUtil;
     }
 
     @Around("@annotation(com.example.usergenerator.annotation.RepeatSubmit)")
@@ -55,8 +58,15 @@ public class RepeatSubmitAspect {
 
     private String getRepeatSubmitKey(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        String sessionId = request.getSession().getId();
-        return "repeat_submit:" + uri + ":" + sessionId;
+        String token = request.getHeader("Authorization");
+        String userId = "anonymous";
+        if (token != null && token.startsWith("Bearer ")) {
+            try {
+                userId = String.valueOf(jwtUtil.getUserId(token.substring(7)));
+            } catch (Exception ignored) {
+            }
+        }
+        return "repeat_submit:" + uri + ":" + userId;
     }
 
     private void cleanExpiredRecords(long currentTime, long timeout) {

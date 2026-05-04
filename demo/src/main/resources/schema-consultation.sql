@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS consultation (
     images TEXT COMMENT '图片URL，逗号分隔',
     medical_history TEXT COMMENT '既往病史',
     current_medication TEXT COMMENT '当前用药',
+    doctor_reply TEXT COMMENT '医生回复',
+    diagnosis TEXT COMMENT '诊断结果',
     status VARCHAR(20) DEFAULT 'pending' COMMENT '状态：pending-待回复，in_progress-进行中，completed-已完成，closed-已关闭',
     created_at DATETIME NOT NULL COMMENT '创建时间',
     updated_at DATETIME NOT NULL COMMENT '更新时间',

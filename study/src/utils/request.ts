@@ -1,70 +1,63 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
-import { API_BASE_URL } from '@/constants'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/user'
 import router from '@/router'
 
-const service: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 5000
+const request = axios.create({
+  baseURL: '',
+  timeout: 10000,
 })
 
-service.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    // 登录和注册请求不添加 token 和 role
-    if (config.url && (config.url.includes('/login') || config.url.includes('/register'))) {
-      return config
-    }
-    
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-    const role = localStorage.getItem('role') || sessionStorage.getItem('role')
-    
+request.interceptors.request.use(
+  (config) => {
+    const userStore = useUserStore()
+    const token = userStore.token
     if (token) {
-      config.headers = config.headers || {}
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers['Authorization'] = `Bearer ${token}`
       config.headers['X-Token'] = token
     }
-    
-    if (role) {
-      config.headers = config.headers || {}
-      config.headers['X-User-Role'] = role
-    }
-    
     return config
   },
   (error) => {
+    console.error('请求错误:', error)
     return Promise.reject(error)
   }
 )
 
-service.interceptors.response.use(
-  (response: AxiosResponse) => {
+request.interceptors.response.use(
+  (response) => {
     return response.data
   },
   (error) => {
-    if (error.response) {
-      const status = error.response.status
-      const message = error.response.data?.msg || error.message
-      
-      if (status === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('username')
-        localStorage.removeItem('role')
-        sessionStorage.removeItem('token')
-        sessionStorage.removeItem('username')
-        sessionStorage.removeItem('role')
-        router.push('/login')
-      }
-      
-      return Promise.reject({
-        status: status,
-        message: message,
-        data: error.response.data
-      })
+    const status = error.response?.status
+    const data = error.response?.data
+
+    if (status === 401) {
+      ElMessage.error(data?.msg || '登录已过期，请重新登录')
+      const userStore = useUserStore()
+      userStore.clearUser()
+      router.push('/login')
+      return Promise.reject(error)
     }
-    return Promise.reject({
-      status: 0,
-      message: error.message || '网络错误'
-    })
+
+    if (status === 403) {
+      ElMessage.error(data?.msg || '没有权限访问')
+      return Promise.reject(error)
+    }
+
+    if (status >= 500) {
+      ElMessage.error(data?.msg || '服务器异常，请稍后重试')
+      return Promise.reject(error)
+    }
+
+    if (data?.msg) {
+      ElMessage.error(data.msg)
+    } else {
+      ElMessage.error(error.message || '网络异常')
+    }
+
+    return Promise.reject(error)
   }
 )
 
-export default service
+export default request

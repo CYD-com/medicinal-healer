@@ -10,8 +10,9 @@
         <result column="consultation_count" property="consultationCount"/>
         <result column="specialty" property="specialty"/>
         <result column="department_id" property="departmentId"/>
+        <result column="user_id" property="userId"/>
     </resultMap>
-    <sql id="Base_Column_List">doctor_id, name, title, avatar, rating, consultation_count, specialty, department_id</sql>
+    <sql id="Base_Column_List">doctor_id, name, title, avatar, rating, consultation_count, specialty, department_id, user_id</sql>
     <select id="selectAllDoctors" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/> FROM t_doctor ORDER BY doctor_id ASC
     </select>
@@ -23,5 +24,8 @@
     </select>
     <select id="selectDoctorWithDepartment" resultMap="BaseResultMap">
         SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE d.doctor_id = #{doctorId}
+    </select>
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM t_doctor WHERE user_id = #{userId} LIMIT 1
     </select>
 </mapper>

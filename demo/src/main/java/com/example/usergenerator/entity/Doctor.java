@@ -36,6 +36,9 @@ public class Doctor implements Serializable {
     @TableField("department_id")
     private Long departmentId;
 
+    @TableField("user_id")
+    private Long userId;
+
     public Long getId() {
         return id;
     }
@@ -98,5 +101,13 @@ public class Doctor implements Serializable {
 
     public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

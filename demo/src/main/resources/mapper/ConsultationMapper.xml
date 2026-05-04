@@ -13,6 +13,8 @@
         <result column="images" property="images" />
         <result column="medical_history" property="medicalHistory" />
         <result column="current_medication" property="currentMedication" />
+        <result column="doctor_reply" property="doctorReply" />
+        <result column="diagnosis" property="diagnosis" />
         <result column="status" property="status" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
@@ -29,6 +31,10 @@
 
     <select id="selectByDoctorId" resultMap="BaseResultMap">
         SELECT * FROM consultation WHERE doctor_id = #{doctorId} AND deleted = 0 ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByDoctorIdAndStatus" resultMap="BaseResultMap">
+        SELECT * FROM consultation WHERE doctor_id = #{doctorId} AND status = #{status} AND deleted = 0 ORDER BY created_at DESC
     </select>
 
 </mapper>

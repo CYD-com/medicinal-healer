@@ -13,7 +13,7 @@ public interface HealthRecordService {
 
     void updateMedicalHistory(Long userId, MedicalHistoryUpdateDTO dto);
 
-    java.util.Map<String, Object> getVisits(Long userId, String type, String startDate, String endDate);
+    java.util.Map<String, Object> getVisits(Long userId, String type, String startDate, String endDate, String doctorId);
 
     VisitRecordVO getVisitDetail(Long visitId);
 

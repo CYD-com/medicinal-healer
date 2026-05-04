@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 import { API_PATHS } from '@/constants'
 
-export function login(username: string, password: string) {
+export function login(username: string, password: string, loginRole?: string) {
   return request({
     url: API_PATHS.LOGIN,
     method: 'post',
-    data: { username, password }
+    data: { username, password, loginRole }
   })
 }
 

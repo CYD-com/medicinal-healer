@@ -76,11 +76,12 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
             item.setDosage(itemDTO.getDosage());
             item.setQuantity(itemDTO.getQuantity());
             item.setUnit(itemDTO.getUnit());
-            item.setUnitPrice(BigDecimal.valueOf(itemDTO.getUnitPrice()));
+            BigDecimal unitPrice = itemDTO.getUnitPrice() != null ? BigDecimal.valueOf(itemDTO.getUnitPrice()) : BigDecimal.ZERO;
+            item.setUnitPrice(unitPrice);
 
-            BigDecimal amount = BigDecimal.valueOf(itemDTO.getAmount() != null
-                    ? itemDTO.getAmount()
-                    : itemDTO.getUnitPrice() * itemDTO.getQuantity());
+            BigDecimal amount = itemDTO.getAmount() != null
+                    ? BigDecimal.valueOf(itemDTO.getAmount())
+                    : unitPrice.multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
             item.setAmount(amount);
             item.setCreatedAt(LocalDateTime.now());
 

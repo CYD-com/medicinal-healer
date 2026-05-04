@@ -29,7 +29,7 @@ public class CaptchaServiceImpl implements CaptchaService {
         String key = CAPTCHA_KEY_PREFIX + uuid;
         // 将验证码存入Redis，设置过期时间为5分钟
         stringRedisTemplate.opsForValue().set(key, code.toLowerCase(), CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
-        log.info("生成验证码成功，uuid: {}, code: {}", uuid, code);
+        log.info("生成验证码成功，uuid: {}", uuid);
         // 返回验证码图片的Base64编码
         return lineCaptcha.getImageBase64();
     }

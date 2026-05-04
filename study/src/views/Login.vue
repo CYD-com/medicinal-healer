@@ -27,6 +27,24 @@
             />
           </el-form-item>
 
+          <el-form-item prop="loginRole">
+            <div class="role-select-label">选择身份</div>
+            <el-radio-group v-model="form.loginRole" class="role-radio-group">
+              <el-radio-button label="user">
+                <el-icon style="margin-right: 4px"><User /></el-icon>
+                患者
+              </el-radio-button>
+              <el-radio-button label="doctor">
+                <el-icon style="margin-right: 4px"><FirstAidKit /></el-icon>
+                医生
+              </el-radio-button>
+              <el-radio-button label="admin">
+                <el-icon style="margin-right: 4px"><Setting /></el-icon>
+                管理员
+              </el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+
           <el-form-item>
             <el-button
               type="primary"
@@ -52,6 +70,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { User, FirstAidKit, Setting } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { Router } from 'vue-router'
 import type { LoginForm } from '@/types'
@@ -64,6 +83,7 @@ const loading = ref<boolean>(false)
 const form = reactive<LoginForm & { remember: boolean }>({
   username: '',
   password: '',
+  loginRole: 'user',
   remember: false
 })
 
@@ -83,11 +103,19 @@ const handleLogin = async (): Promise<void> => {
     const success = await userStore.login(
       form.username, 
       form.password, 
-      form.remember
+      form.remember,
+      form.loginRole
     )
     
     if (success) {
-      router.push('/home')
+      const role = userStore.user?.role || 'user'
+      if (role === 'admin') {
+        router.push('/admin/statistics')
+      } else if (role === 'doctor') {
+        router.push('/doctor/schedule')
+      } else {
+        router.push('/dashboard')
+      }
     }
   } catch (error) {
     console.error('登录错误:', error)
@@ -167,5 +195,28 @@ const handleLogin = async (): Promise<void> => {
 
 .register-link:hover {
   text-decoration: underline;
+}
+
+.role-select-label {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.role-radio-group {
+  width: 100%;
+  display: flex;
+}
+
+.role-radio-group .el-radio-button {
+  flex: 1;
+}
+
+.role-radio-group .el-radio-button :deep(.el-radio-button__inner) {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

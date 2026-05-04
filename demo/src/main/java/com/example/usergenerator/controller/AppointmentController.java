@@ -7,6 +7,8 @@ import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.appointment.AppointmentCreateDTO;
 import com.example.usergenerator.dto.appointment.AppointmentQueryDTO;
 import com.example.usergenerator.dto.appointment.AppointmentUpdateDTO;
+import com.example.usergenerator.entity.Doctor;
+import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.AppointmentService;
 import com.example.usergenerator.util.PermissionUtil;
 import com.example.usergenerator.vo.appointment.AppointmentVO;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -31,6 +34,7 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
     private final PermissionUtil permissionUtil;
+    private final DoctorMapper doctorMapper;
 
     @GetMapping("/departments")
     public Result<List<DepartmentVO>> getDepartments() {
@@ -123,5 +127,44 @@ public class AppointmentController {
     public Result<Void> initData() {
         appointmentService.initTestData();
         return Result.success("初始化成功");
+    }
+
+    // 医生端 - 获取今日排班
+    @GetMapping("/doctor/today")
+    @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<List<AppointmentVO>> getDoctorTodayAppointments() {
+        Long userId = permissionUtil.getCurrentUserId();
+        Doctor doctor = doctorMapper.selectByUserId(userId);
+        if (doctor == null) {
+            return Result.error(404, "医生信息不存在");
+        }
+        AppointmentQueryDTO dto = new AppointmentQueryDTO();
+        dto.setDoctorId(doctor.getId());
+        dto.setAppointmentDate(LocalDate.now());
+        dto.setPage(1);
+        dto.setSize(100);
+        IPage<AppointmentVO> page = appointmentService.getAppointmentsByUserId(dto);
+        return Result.success("查询成功", page.getRecords());
+    }
+
+    // 医生端 - 获取指定日期排班
+    @GetMapping("/doctor/schedule")
+    @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<List<AppointmentVO>> getDoctorSchedule(
+            @RequestParam(required = false) String date) {
+        Long userId = permissionUtil.getCurrentUserId();
+        Doctor doctor = doctorMapper.selectByUserId(userId);
+        if (doctor == null) {
+            return Result.error(404, "医生信息不存在");
+        }
+        AppointmentQueryDTO dto = new AppointmentQueryDTO();
+        dto.setDoctorId(doctor.getId());
+        if (date != null && !date.isEmpty()) {
+            dto.setAppointmentDate(LocalDate.parse(date));
+        }
+        dto.setPage(1);
+        dto.setSize(100);
+        IPage<AppointmentVO> page = appointmentService.getAppointmentsByUserId(dto);
+        return Result.success("查询成功", page.getRecords());
     }
 }

@@ -19,6 +19,7 @@ export interface DoctorVO {
   name: string
   title: string
   avatar: string
+  departmentName?: string
 }
 
 export interface ConsultationVO {
@@ -33,6 +34,11 @@ export interface ConsultationVO {
   currentMedication?: string
   status: string
   statusText: string
+  consultationFee?: number
+  patientName?: string
+  diagnosis?: string
+  doctorReply?: string
+  prescriptionSuggestion?: string
   createdAt: string
 }
 
@@ -60,4 +66,8 @@ export const getConsultationById = (id: number) => {
 
 export const cancelConsultation = (id: number) => {
   return request.put<ApiResponse<ConsultationVO>>(`/api/consultation/${id}/cancel`)
+}
+
+export const updateConsultation = (id: number, data: Partial<ConsultationVO>) => {
+  return request.put<ApiResponse<ConsultationVO>>(`/api/consultation/${id}`, data)
 }

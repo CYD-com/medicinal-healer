@@ -24,11 +24,13 @@ public enum ResultCode {
 
     INVALID_CREDENTIALS(1005, "用户名或密码错误"),
 
-    INVALID_CAPTCHA(1006, "验证码错误或已过期"),
+    ROLE_MISMATCH(1006, "选择的身份与账号角色不匹配"),
 
-    DRUG_NOT_FOUND(1007, "药品不存在"),
+    INVALID_CAPTCHA(1007, "验证码错误或已过期"),
 
-    PRESCRIPTION_NOT_FOUND(1008, "处方不存在"),
+    DRUG_NOT_FOUND(1008, "药品不存在"),
+
+    PRESCRIPTION_NOT_FOUND(1009, "处方不存在"),
 
     RECORD_NOT_FOUND(2001, "记录不存在"),
 

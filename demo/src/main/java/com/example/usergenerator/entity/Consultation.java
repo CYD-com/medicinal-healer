@@ -42,6 +42,12 @@ public class Consultation {
     @TableField("current_medication")
     private String currentMedication;
 
+    @TableField("doctor_reply")
+    private String doctorReply;
+
+    @TableField("diagnosis")
+    private String diagnosis;
+
     @TableField("status")
     private String status;
 

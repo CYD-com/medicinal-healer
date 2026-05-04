@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usergenerator.dto.consultation.ConsultationCreateDTO;
 import com.example.usergenerator.entity.Consultation;
 import com.example.usergenerator.entity.Doctor;
+import com.example.usergenerator.exception.BusinessException;
 import com.example.usergenerator.mapper.ConsultationMapper;
 import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.ConsultationService;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Consultation> implements ConsultationService {
 
     private final DoctorMapper doctorMapper;
+    private final ConsultationMapper consultationMapper;
 
     private static final Map<String, String> STATUS_MAP = Map.of(
             "pending", "待回复",
@@ -115,6 +117,43 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         return convertToVO(consultation);
     }
 
+    @Override
+    public List<ConsultationVO> getConsultationsByDoctorId(Long doctorId, String status) {
+        List<Consultation> consultations;
+        if (status != null && !status.isEmpty()) {
+            consultations = consultationMapper.selectByDoctorIdAndStatus(doctorId, status);
+        } else {
+            consultations = consultationMapper.selectByDoctorId(doctorId);
+        }
+        return consultations.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public ConsultationVO updateConsultationByDoctor(Long id, Long doctorId, String doctorReply, String diagnosis, String status) {
+        Consultation consultation = baseMapper.selectById(id);
+        if (consultation == null) {
+            throw new BusinessException("问诊记录不存在");
+        }
+        if (!consultation.getDoctorId().equals(doctorId)) {
+            throw new BusinessException("无权操作此问诊");
+        }
+        if (doctorReply != null) {
+            consultation.setDoctorReply(doctorReply);
+        }
+        if (diagnosis != null) {
+            consultation.setDiagnosis(diagnosis);
+        }
+        if (status != null) {
+            consultation.setStatus(status);
+        }
+        consultation.setUpdatedAt(LocalDateTime.now());
+        baseMapper.updateById(consultation);
+        return convertToVO(consultation);
+    }
+
     private ConsultationVO convertToVO(Consultation consultation) {
         Doctor doctor = doctorMapper.selectById(consultation.getDoctorId());
         return convertToVO(consultation, doctor);
@@ -130,6 +169,8 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         vo.setImages(consultation.getImages());
         vo.setMedicalHistory(consultation.getMedicalHistory());
         vo.setCurrentMedication(consultation.getCurrentMedication());
+        vo.setDoctorReply(consultation.getDoctorReply());
+        vo.setDiagnosis(consultation.getDiagnosis());
         vo.setStatus(consultation.getStatus());
         vo.setStatusText(STATUS_MAP.getOrDefault(consultation.getStatus(), consultation.getStatus()));
         vo.setCreatedAt(consultation.getCreatedAt());

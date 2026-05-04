@@ -15,4 +15,6 @@ public interface ConsultationMapper extends BaseMapper<Consultation> {
     List<Consultation> selectByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
     List<Consultation> selectByDoctorId(@Param("doctorId") Long doctorId);
+
+    List<Consultation> selectByDoctorIdAndStatus(@Param("doctorId") Long doctorId, @Param("status") String status);
 }
