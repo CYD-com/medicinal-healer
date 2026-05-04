@@ -18,16 +18,17 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret:user-generator-secret-key-2024-very-long-secret-key}")
+    @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}")
+    @Value("${jwt.expiration:604800000}")
     private Long expiration;
 
     private Key key;
 
     @PostConstruct
     public void init() {
+        log.info("JwtUtil初始化，secret长度: {}", secret != null ? secret.length() : 0);
         this.key = Keys.hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 

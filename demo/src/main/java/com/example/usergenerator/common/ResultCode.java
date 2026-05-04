@@ -28,9 +28,11 @@ public enum ResultCode {
 
     INVALID_CAPTCHA(1007, "验证码错误或已过期"),
 
-    DRUG_NOT_FOUND(1008, "药品不存在"),
+    ACCOUNT_DISABLED(1008, "账号已被禁用，无法登录"),
 
-    PRESCRIPTION_NOT_FOUND(1009, "处方不存在"),
+    DRUG_NOT_FOUND(1009, "药品不存在"),
+
+    PRESCRIPTION_NOT_FOUND(1010, "处方不存在"),
 
     RECORD_NOT_FOUND(2001, "记录不存在"),
 

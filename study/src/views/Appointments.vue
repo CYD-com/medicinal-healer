@@ -286,9 +286,8 @@ const loadDepartments = async (): Promise<void> => {
       const initRes = await getDepartments()
       departments.value = initRes.data
     }
-  } catch (error) {
-    console.error('获取科室列表失败:', error)
-    ElMessage.error('获取科室列表失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     loading.value = false
   }
@@ -299,9 +298,7 @@ const loadDoctors = async (): Promise<void> => {
   try {
     const res: any = await getDoctors(selectedDepartment.value ?? undefined)
     doctors.value = res.data?.data || res.data || []
-  } catch (error) {
-    console.error('获取医生列表失败:', error)
-    ElMessage.error('获取医生列表失败')
+  } catch {
     doctors.value = []
   } finally {
     loading.value = false
@@ -317,9 +314,8 @@ const loadMyAppointments = async (): Promise<void> => {
       size: 100
     })
     myAppointments.value = res.data?.records || []
-  } catch (error) {
-    console.error('获取预约列表失败:', error)
-    ElMessage.error('获取预约列表失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     loading.value = false
   }
@@ -397,10 +393,8 @@ const submitAppointment = async (): Promise<void> => {
     selectedDoctor.value = null
     selectedDoctorId.value = ''
     loadMyAppointments()
-  } catch (error: any) {
-    console.error('预约失败:', error)
-    const errorMessage = error.response?.data?.message || error.message || '预约失败，请稍后重试'
-    ElMessage.error(errorMessage)
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     submitting.value = false
   }
@@ -424,9 +418,8 @@ const cancelAppointment = async (appointment: Appointment): Promise<void> => {
       await cancelAppointmentApi(String(appointment.appointmentId))
       ElMessage.success('预约已取消')
       loadMyAppointments()
-    } catch (error) {
-      console.error('取消预约失败:', error)
-      ElMessage.error('取消预约失败')
+    } catch {
+      // 错误提示已由全局拦截器处理
     }
   }).catch(() => {})
 }

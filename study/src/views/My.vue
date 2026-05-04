@@ -134,8 +134,8 @@ const handleAvatarChange = async (file: any) => {
       userForm.value.avatar = avatarUrl
       ElMessage.success('头像更新成功')
     }
-  } catch (error) {
-    ElMessage.error('头像上传失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
@@ -151,13 +151,9 @@ const handleSaveProfile = async () => {
       idCard: userForm.value.idCard,
       address: userForm.value.address
     })
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-    } else {
-      ElMessage.error(res.msg || '保存失败')
-    }
-  } catch (error) {
-    ElMessage.error('保存失败')
+    ElMessage.success('保存成功')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     saving.value = false
   }

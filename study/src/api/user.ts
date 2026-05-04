@@ -7,19 +7,41 @@ export function getUserList() {
   })
 }
 
-export function addUser(username: string, password: string, role: string) {
+export function addUser(data: {
+  username: string
+  password: string
+  role?: string
+  realName?: string
+  gender?: string
+  age?: number | null
+  phone?: string
+  email?: string
+  idCard?: string
+  address?: string
+  status?: number
+}) {
   return request({
     url: '/api/user/add',
     method: 'post',
-    data: { username, password, role }
+    data
   })
 }
 
-export function updateUser(id: string, role: string) {
+export function updateUser(id: string, data: {
+  realName?: string
+  gender?: string
+  age?: number | null
+  phone?: string
+  email?: string
+  idCard?: string
+  address?: string
+  role?: string
+  status?: number
+}) {
   return request({
     url: `/api/user/update/${id}`,
     method: 'put',
-    data: { id, role }
+    data
   })
 }
 

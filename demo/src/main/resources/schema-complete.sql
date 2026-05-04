@@ -519,7 +519,97 @@ INSERT INTO `inventory` (`id`, `drug_id`, `stock`, `safety_stock`, `status`, `ex
 ('INV005', 'DRUG005', 600, 150, 'normal', '2028-08-30', 848, NOW());
 
 -- ============================================
--- 完成！共 18 张表，每表 5 条测试数据
+-- 19. doctor_schedule 医生排班表
+-- ============================================
+DROP TABLE IF EXISTS `doctor_schedule`;
+CREATE TABLE `doctor_schedule` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '排班ID',
+    `doctor_id` BIGINT NOT NULL COMMENT '医生ID',
+    `department_id` BIGINT DEFAULT NULL COMMENT '科室ID',
+    `work_date` DATE NOT NULL COMMENT '工作日期',
+    `start_time` VARCHAR(10) NOT NULL COMMENT '开始时间',
+    `end_time` VARCHAR(10) NOT NULL COMMENT '结束时间',
+    `max_appointments` INT DEFAULT 20 COMMENT '最大预约数',
+    `current_appointments` INT DEFAULT 0 COMMENT '当前预约数',
+    `status` VARCHAR(20) DEFAULT 'active' COMMENT '状态：active-有效，cancelled-已取消，completed-已完成',
+    `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_doctor_id` (`doctor_id`),
+    KEY `idx_work_date` (`work_date`),
+    KEY `idx_department_id` (`department_id`),
+    CONSTRAINT `fk_schedule_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `t_doctor`(`doctor_id`),
+    CONSTRAINT `fk_schedule_department` FOREIGN KEY (`department_id`) REFERENCES `t_department`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生排班表';
+
+-- ============================================
+-- 20. notification 通知表
+-- ============================================
+DROP TABLE IF EXISTS `notification`;
+CREATE TABLE `notification` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '通知ID',
+    `user_id` BIGINT NOT NULL COMMENT '接收用户ID',
+    `title` VARCHAR(200) NOT NULL COMMENT '通知标题',
+    `content` TEXT COMMENT '通知内容',
+    `type` VARCHAR(50) DEFAULT 'system' COMMENT '通知类型：system-系统，appointment-预约，consultation-问诊，prescription-处方',
+    `is_read` TINYINT DEFAULT 0 COMMENT '是否已读：0-未读，1-已读',
+    `related_id` BIGINT DEFAULT NULL COMMENT '关联业务ID',
+    `related_type` VARCHAR(50) DEFAULT NULL COMMENT '关联业务类型',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_is_read` (`is_read`),
+    CONSTRAINT `fk_notification_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知表';
+
+-- ============================================
+-- 21. inventory_record 库存变动记录表
+-- ============================================
+DROP TABLE IF EXISTS `inventory_record`;
+CREATE TABLE `inventory_record` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+    `drug_id` VARCHAR(36) NOT NULL COMMENT '药品ID',
+    `inventory_id` VARCHAR(36) DEFAULT NULL COMMENT '库存ID',
+    `change_type` VARCHAR(20) NOT NULL COMMENT '变动类型：in-入库，out-出库，adjust-调整',
+    `change_quantity` INT NOT NULL COMMENT '变动数量',
+    `before_quantity` INT NOT NULL COMMENT '变动前库存',
+    `after_quantity` INT NOT NULL COMMENT '变动后库存',
+    `operator_id` BIGINT DEFAULT NULL COMMENT '操作人ID',
+    `reason` VARCHAR(500) DEFAULT NULL COMMENT '变动原因',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_drug_id` (`drug_id`),
+    KEY `idx_inventory_id` (`inventory_id`),
+    CONSTRAINT `fk_record_drug` FOREIGN KEY (`drug_id`) REFERENCES `drugs`(`drug_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存变动记录表';
+
+-- ============================================
+-- 22. operation_log 操作日志表
+-- ============================================
+DROP TABLE IF EXISTS `operation_log`;
+CREATE TABLE `operation_log` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+    `user_id` BIGINT DEFAULT NULL COMMENT '操作人ID',
+    `username` VARCHAR(50) DEFAULT NULL COMMENT '操作人用户名',
+    `role` VARCHAR(20) DEFAULT NULL COMMENT '操作人角色',
+    `operation_type` VARCHAR(50) NOT NULL COMMENT '操作类型',
+    `target_type` VARCHAR(50) DEFAULT NULL COMMENT '操作对象类型',
+    `target_id` BIGINT DEFAULT NULL COMMENT '操作对象ID',
+    `content` VARCHAR(500) DEFAULT NULL COMMENT '操作内容',
+    `ip_address` VARCHAR(50) DEFAULT NULL COMMENT 'IP地址',
+    `user_agent` VARCHAR(500) DEFAULT NULL COMMENT 'User-Agent',
+    `status` VARCHAR(20) DEFAULT 'success' COMMENT '操作状态：success-成功，fail-失败',
+    `error_msg` TEXT COMMENT '错误信息',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_operation_type` (`operation_type`),
+    KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
+
+-- ============================================
+-- 完成！共 22 张表，每表插入测试数据
 -- 测试账号密码均为 123456
 -- 管理员：admin
 -- 医生：doctor_zs（张三）、doctor_ls（李四）

@@ -177,8 +177,8 @@ const handleSubmit = async () => {
     ElMessage.success('处方开具成功')
     createVisible.value = false
     fetchPrescriptions()
-  } catch (e: any) {
-    ElMessage.error(e.message || '开具处方失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     submitting.value = false
   }

@@ -276,9 +276,8 @@ const loadPrescriptions = async () => {
       status: prescriptionStatus.value || undefined
     })
     myPrescriptions.value = res.data || []
-  } catch (error) {
-    console.error('获取处方列表失败:', error)
-    ElMessage.error('获取处方列表失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     loading.value = false
   }
@@ -298,9 +297,8 @@ const viewPrescription = async (prescription: PrescriptionVO) => {
     const res: any = await getPrescriptionById(prescription.id)
     selectedPrescription.value = res.data
     activeTab.value = 'prescription-detail'
-  } catch (error) {
-    console.error('获取处方详情失败:', error)
-    ElMessage.error('获取处方详情失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
@@ -415,9 +413,8 @@ const submitCreateForm = async () => {
       ElMessage.success('创建处方成功')
       createDialogVisible.value = false
       loadPrescriptions()
-    } catch (error: any) {
-      console.error('创建处方失败:', error)
-      ElMessage.error(error?.msg || '创建处方失败')
+    } catch {
+      // 错误提示已由全局拦截器处理
     } finally {
       createLoading.value = false
     }

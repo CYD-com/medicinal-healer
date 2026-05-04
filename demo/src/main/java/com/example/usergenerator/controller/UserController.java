@@ -4,11 +4,15 @@ import com.example.usergenerator.annotation.RequirePermission;
 import com.example.usergenerator.annotation.RepeatSubmit;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
+import com.example.usergenerator.dto.user.AdminAddUserDTO;
+import com.example.usergenerator.dto.user.AdminUserUpdateDTO;
 import com.example.usergenerator.dto.user.UserLoginDTO;
 import com.example.usergenerator.dto.user.UserRegisterDTO;
 import com.example.usergenerator.dto.user.UserUpdateDTO;
 import com.example.usergenerator.dto.user.UserUpdateRoleDTO;
 import com.example.usergenerator.dto.user.AvatarUpdateDTO;
+import com.example.usergenerator.dto.user.ChangePasswordDTO;
+import com.example.usergenerator.dto.user.UpdateProfileDTO;
 import com.example.usergenerator.service.SysUserService;
 import com.example.usergenerator.util.TokenBlacklistUtil;
 import com.example.usergenerator.vo.user.UserGenerateVO;
@@ -71,9 +75,8 @@ public class UserController {
     @PostMapping("/add")
     @RequirePermission(RoleConstants.ADMIN)
     @RepeatSubmit(timeout = 3000)
-    public Result<UserVO> addUser(@Valid @RequestBody UserRegisterDTO dto) {
-        sysUserService.register(dto);
-        UserVO userVO = sysUserService.getUserByUsername(dto.getUsername());
+    public Result<UserVO> addUser(@Valid @RequestBody AdminAddUserDTO dto) {
+        UserVO userVO = sysUserService.adminAddUser(dto);
         return Result.success("添加成功", userVO);
     }
 
@@ -177,5 +180,28 @@ public class UserController {
     public Result<Void> updateUserInfo(@Valid @RequestBody UserUpdateDTO dto) {
         sysUserService.updateUserInfo(dto);
         return Result.success("更新成功");
+    }
+
+    @PutMapping("/password")
+    @RequirePermission(RoleConstants.USER)
+    @RepeatSubmit(timeout = 3000)
+    public Result<Void> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
+        sysUserService.changePassword(dto);
+        return Result.success("密码修改成功");
+    }
+
+    @PutMapping("/profile")
+    @RequirePermission(RoleConstants.USER)
+    public Result<Void> updateProfile(@Valid @RequestBody UpdateProfileDTO dto) {
+        sysUserService.updateProfile(dto);
+        return Result.success("资料更新成功");
+    }
+
+    @PutMapping("/update/{id}")
+    @RequirePermission(RoleConstants.ADMIN)
+    public Result<UserVO> adminUpdateUser(@PathVariable Long id, @Valid @RequestBody AdminUserUpdateDTO dto) {
+        dto.setId(id);
+        UserVO userVO = sysUserService.adminUpdateUser(dto);
+        return Result.success("更新成功", userVO);
     }
 }

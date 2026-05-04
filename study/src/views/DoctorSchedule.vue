@@ -125,8 +125,8 @@ const handleConfirm = async (row: any) => {
     await updateAppointment(String(row.appointmentId), { status: 'confirmed' } as any)
     ElMessage.success('已确认接诊')
     row.status = 'confirmed'
-  } catch (e: any) {
-    ElMessage.error(e.message || '操作失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
@@ -135,8 +135,8 @@ const handleComplete = async (row: any) => {
     await updateAppointment(String(row.appointmentId), { status: 'completed' } as any)
     ElMessage.success('已完成就诊')
     row.status = 'completed'
-  } catch (e: any) {
-    ElMessage.error(e.message || '操作失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 

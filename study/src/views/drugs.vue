@@ -219,14 +219,9 @@ const fetchDrugList = async (): Promise<void> => {
       size: 100 // 一次性获取较多数据，避免分页
     }
     const response: any = await getDrugList(query)
-    if (response.code === 200) {
-      drugs.value = response.data.records
-    } else {
-      ElMessage.error('获取药品列表失败')
-    }
-  } catch (error) {
-    console.error('获取药品列表失败:', error)
-    ElMessage.error('获取药品列表失败')
+    drugs.value = response.data.records
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     loading.value = false
   }
@@ -239,14 +234,9 @@ const fetchDrugList = async (): Promise<void> => {
 const fetchInventorySummary = async (): Promise<void> => {
   try {
     const response: any = await getInventorySummary()
-    if (response.code === 200) {
-      inventorySummary.value = response.data
-    } else {
-      ElMessage.error('获取库存概览失败')
-    }
-  } catch (error) {
-    console.error('获取库存概览失败:', error)
-    ElMessage.error('获取库存概览失败')
+    inventorySummary.value = response.data
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
@@ -256,15 +246,10 @@ const fetchInventorySummary = async (): Promise<void> => {
  */
 const fetchInventoryList = async (): Promise<void> => {
   try {
-    const response: any = await getInventoryList(1, 100) // 一次性获取较多数据
-    if (response.code === 200) {
-      inventoryItems.value = response.data.records
-    } else {
-      ElMessage.error('获取库存列表失败')
-    }
-  } catch (error) {
-    console.error('获取库存列表失败:', error)
-    ElMessage.error('获取库存列表失败')
+    const response: any = await getInventoryList(1, 100)
+    inventoryList.value = response.data.records
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
@@ -275,14 +260,9 @@ const fetchInventoryList = async (): Promise<void> => {
 const fetchDrugCategories = async (): Promise<void> => {
   try {
     const response: any = await getDrugCategories()
-    if (response.code === 200) {
-      categories.value = response.data
-    } else {
-      ElMessage.error('获取药品分类失败')
-    }
-  } catch (error) {
-    console.error('获取药品分类失败:', error)
-    ElMessage.error('获取药品分类失败')
+    categories.value = response.data
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
@@ -295,16 +275,10 @@ const viewDrugDetail = async (drug: DrugItem): Promise<void> => {
   try {
     loading.value = true
     const response: any = await getDrugDetail(drug.id)
-    if (response.code === 200) {
-      selectedDrug.value = response.data
-      // 切换到药品详情标签页
-      activeTab.value = 'drug-detail'
-    } else {
-      ElMessage.error('获取药品详情失败')
-    }
-  } catch (error) {
-    console.error('获取药品详情失败:', error)
-    ElMessage.error('获取药品详情失败')
+    selectedDrug.value = response.data
+    activeTab.value = 'drug-detail'
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     loading.value = false
   }

@@ -152,8 +152,8 @@ const handleReply = async () => {
     ElMessage.success('回复成功')
     replyVisible.value = false
     fetchConsultations()
-  } catch (e: any) {
-    ElMessage.error(e.message || '回复失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     submitting.value = false
   }
@@ -174,8 +174,8 @@ const handleComplete = async () => {
     ElMessage.success('问诊已完成')
     replyVisible.value = false
     fetchConsultations()
-  } catch (e: any) {
-    ElMessage.error(e.message || '操作失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     submitting.value = false
   }

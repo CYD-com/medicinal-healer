@@ -1,6 +1,7 @@
 package com.example.usergenerator.controller;
 
 import com.example.usergenerator.annotation.RequirePermission;
+import com.example.usergenerator.annotation.LogOperation;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.prescription.PrescriptionCreateDTO;
@@ -27,6 +28,7 @@ public class PrescriptionController {
 
     @PostMapping("/create")
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
+    @LogOperation(operationType = "create", targetType = "prescription", description = "创建处方")
     public Result<PrescriptionVO> createPrescription(@Valid @RequestBody PrescriptionCreateDTO dto) {
         Long userId = permissionUtil.getCurrentUserId();
         PrescriptionVO prescription = prescriptionService.createPrescription(dto, userId);
@@ -51,6 +53,7 @@ public class PrescriptionController {
 
     @PutMapping("/{id}/status")
     @RequirePermission(RoleConstants.ADMIN)
+    @LogOperation(operationType = "update_status", targetType = "prescription", description = "更新处方状态")
     public Result<PrescriptionVO> updatePrescriptionStatus(
             @PathVariable Long id,
             @RequestParam String status) {

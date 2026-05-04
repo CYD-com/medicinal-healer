@@ -31,7 +31,7 @@
         <el-table-column prop="role" label="角色" width="100">
           <template #default="scope">
             <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'success'">
-              {{ scope.row.role === 'admin' ? '管理员' : '用户' }}
+              {{ scope.row.role === 'admin' ? '管理员' : scope.row.role === 'doctor' ? '医生' : '用户' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -47,8 +47,15 @@
             {{ formatDateTime(scope.row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="scope">
+            <el-button
+              :type="scope.row.status === 1 ? 'warning' : 'success'"
+              size="small"
+              @click="toggleStatus(scope.row)"
+            >
+              {{ scope.row.status === 1 ? '禁用' : '启用' }}
+            </el-button>
             <el-button type="primary" size="small" @click="editUser(scope.row)">编辑</el-button>
             <el-button type="danger" size="small" @click="deleteUser(scope.row)">删除</el-button>
           </template>
@@ -59,7 +66,7 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px">
       <el-form :model="userForm" label-width="100px">
         <el-form-item label="用户名" required>
-          <el-input v-model="userForm.username" placeholder="请输入用户名"></el-input>
+          <el-input v-model="userForm.username" placeholder="请输入用户名" :disabled="isEdit"></el-input>
         </el-form-item>
         <el-form-item label="密码" v-if="!isEdit" required>
           <el-input v-model="userForm.password" type="password" placeholder="请输入密码"></el-input>
@@ -92,6 +99,7 @@
         <el-form-item label="角色" required>
           <el-select v-model="userForm.role" placeholder="请选择角色">
             <el-option label="用户" value="user"></el-option>
+            <el-option label="医生" value="doctor"></el-option>
             <el-option label="管理员" value="admin"></el-option>
           </el-select>
         </el-form-item>
@@ -159,9 +167,8 @@ const loadUserList = async () => {
     if (res.code === 200) {
       userList.value = res.data || []
     }
-  } catch (error) {
-    console.error('获取用户列表失败:', error)
-    ElMessage.error('获取用户列表失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     loading.value = false
   }
@@ -219,22 +226,24 @@ const handleSubmit = async () => {
 
   try {
     if (isEdit.value) {
-      await updateUser(String(userForm.value.id!), userForm.value.role)
+      const { id, realName, gender, age, phone, email, idCard, address, role, status } = userForm.value
+      await updateUser(String(id!), { realName, gender, age, phone, email, idCard, address, role, status })
       ElMessage.success('更新成功')
     } else {
-      await addUser(userForm.value.username, userForm.value.password, userForm.value.role)
+      const { username, password, realName, gender, age, phone, email, idCard, address, role, status } = userForm.value
+      await addUser({ username, password, realName, gender, age, phone, email, idCard, address, role, status })
       ElMessage.success('添加成功')
     }
     dialogVisible.value = false
     loadUserList()
-  } catch (error) {
-    ElMessage.error('操作失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 
 const deleteUser = async (user: UserItem) => {
   try {
-    await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
+    await ElMessageBox.confirm(`确定要删除用户 "${user.username}" 吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -243,9 +252,30 @@ const deleteUser = async (user: UserItem) => {
     ElMessage.success('删除成功')
     loadUserList()
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-    }
+    if (error === 'cancel') return
+    // 错误提示已由全局拦截器处理
+  }
+}
+
+const toggleStatus = async (user: UserItem) => {
+  const newStatus = user.status === 1 ? 0 : 1
+  const actionText = newStatus === 0 ? '禁用' : '启用'
+  try {
+    await ElMessageBox.confirm(
+      `确定要${actionText}用户 "${user.username}" 吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    await updateUser(String(user.id), { status: newStatus })
+    ElMessage.success(`${actionText}成功`)
+    loadUserList()
+  } catch (error) {
+    if (error === 'cancel') return
+    // 错误提示已由全局拦截器处理
   }
 }
 

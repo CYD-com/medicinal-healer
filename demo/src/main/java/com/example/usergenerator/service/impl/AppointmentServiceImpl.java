@@ -15,6 +15,8 @@ import com.example.usergenerator.mapper.AppointmentMapper;
 import com.example.usergenerator.mapper.DepartmentMapper;
 import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.AppointmentService;
+import com.example.usergenerator.util.JwtUtil;
+import com.example.usergenerator.util.PermissionUtil;
 import com.example.usergenerator.vo.appointment.AppointmentVO;
 import com.example.usergenerator.vo.appointment.DepartmentVO;
 import com.example.usergenerator.vo.appointment.DoctorVO;
@@ -23,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +37,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appointment> implements AppointmentService {
 
+    private final AppointmentMapper appointmentMapper;
     private final DepartmentMapper departmentMapper;
     private final DoctorMapper doctorMapper;
-    private final AppointmentMapper appointmentMapper;
+    private final PermissionUtil permissionUtil;
+    private final JwtUtil jwtUtil;
 
     @Override
     public List<DepartmentVO> getAllDepartments() {
@@ -176,6 +182,16 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
 
         if ("completed".equals(appointment.getStatus())) {
             throw new BusinessException("已完成的预约无法取消");
+        }
+
+        Long currentUserId = permissionUtil.getCurrentUserId();
+        org.springframework.web.context.request.ServletRequestAttributes attrs =
+                (org.springframework.web.context.request.ServletRequestAttributes)
+                org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        String token = attrs != null ? extractTokenFromRequest(attrs.getRequest()) : null;
+        String currentUserRole = token != null ? jwtUtil.getRole(token) : null;
+        if (!"admin".equals(currentUserRole) && !appointment.getUserId().equals(currentUserId)) {
+            throw new BusinessException("无权取消他人的预约");
         }
 
         appointment.setStatus("cancelled");
@@ -321,5 +337,13 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
                 .patientPhone(appointment.getPatientPhone())
                 .symptoms(appointment.getSymptoms())
                 .build();
+    }
+
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return request.getHeader("X-Token");
     }
 }

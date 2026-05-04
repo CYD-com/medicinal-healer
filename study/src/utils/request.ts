@@ -26,7 +26,14 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   (response) => {
-    return response.data
+    const res = response.data
+    if (res && res.code !== undefined) {
+      if (res.code !== 200) {
+        ElMessage.error(res.msg || '请求失败')
+        return Promise.reject(new Error(res.msg || '请求失败'))
+      }
+    }
+    return res
   },
   (error) => {
     const status = error.response?.status

@@ -165,8 +165,8 @@ const handleSubmit = async () => {
     }
     dialogVisible.value = false
     fetchDoctors()
-  } catch (e: any) {
-    ElMessage.error(e.message || '操作失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     submitting.value = false
   }
@@ -177,8 +177,8 @@ const handleDelete = async (id: number) => {
     await deleteDoctor(id)
     ElMessage.success('删除成功')
     fetchDoctors()
-  } catch (e: any) {
-    ElMessage.error(e.message || '删除失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 

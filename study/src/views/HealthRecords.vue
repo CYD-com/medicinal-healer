@@ -191,8 +191,8 @@ const loadOverview = async () => {
   try {
     const response = await healthRecordAPI.getOverview()
     overviewData.value = response
-  } catch (error) {
-    ElMessage.error('获取健康档案概览失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     overviewLoading.value = false
   }
@@ -206,8 +206,8 @@ const loadMedicalHistory = async () => {
     familyDiseases.value = response.familyDiseases || []
     allergies.value = response.allergies || []
     surgicalHistory.value = response.surgicalHistory || []
-  } catch (error) {
-    ElMessage.error('获取病史记录失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     medicalHistoryLoading.value = false
   }
@@ -218,8 +218,8 @@ const loadVisits = async () => {
   try {
     const response = await healthRecordAPI.getVisits()
     visits.value = response.list || []
-  } catch (error) {
-    ElMessage.error('获取就诊记录失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     visitsLoading.value = false
   }
@@ -232,8 +232,8 @@ const loadIndicators = async () => {
       type: indicatorType.value
     })
     indicators.value = response.records || []
-  } catch (error) {
-    ElMessage.error('获取健康指标记录失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   } finally {
     indicatorsLoading.value = false
   }
@@ -244,8 +244,8 @@ const viewVisitDetail = async (visit) => {
     const response = await healthRecordAPI.getVisitDetail(visit.visitId)
     visitDetail.value = response
     visitDetailVisible.value = true
-  } catch (error) {
-    ElMessage.error('获取就诊详情失败')
+  } catch {
+    // 错误提示已由全局拦截器处理
   }
 }
 

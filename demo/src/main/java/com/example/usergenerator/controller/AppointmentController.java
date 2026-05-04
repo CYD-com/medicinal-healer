@@ -2,6 +2,7 @@ package com.example.usergenerator.controller;
 
 import com.example.usergenerator.annotation.RequirePermission;
 import com.example.usergenerator.annotation.RepeatSubmit;
+import com.example.usergenerator.annotation.LogOperation;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.appointment.AppointmentCreateDTO;
@@ -72,6 +73,7 @@ public class AppointmentController {
     @PostMapping("/create")
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
     @RepeatSubmit(timeout = 3000)
+    @LogOperation(operationType = "create", targetType = "appointment", description = "创建预约")
     public Result<AppointmentVO> createAppointment(@Valid @RequestBody AppointmentCreateDTO dto) {
         Long userId = permissionUtil.getCurrentUserId();
         AppointmentVO appointment = appointmentService.createAppointment(dto, userId);
@@ -118,6 +120,7 @@ public class AppointmentController {
 
     @PutMapping("/cancel/{id}")
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
+    @LogOperation(operationType = "cancel", targetType = "appointment", description = "取消预约")
     public Result<Void> cancelAppointment(@PathVariable @NotNull(message = "ID不能为空") Long id) {
         appointmentService.cancelAppointment(id);
         return Result.success("取消成功");

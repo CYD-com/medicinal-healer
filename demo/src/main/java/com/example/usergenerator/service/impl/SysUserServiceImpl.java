@@ -6,6 +6,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usergenerator.common.ResultCode;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.converter.UserConverter;
+import com.example.usergenerator.dto.user.AdminAddUserDTO;
+import com.example.usergenerator.dto.user.AdminUserUpdateDTO;
+import com.example.usergenerator.dto.user.ChangePasswordDTO;
+import com.example.usergenerator.dto.user.UpdateProfileDTO;
 import com.example.usergenerator.dto.user.UserLoginDTO;
 import com.example.usergenerator.dto.user.UserRegisterDTO;
 import com.example.usergenerator.dto.user.UserUpdateDTO;
@@ -62,6 +66,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
 
+        if (user.getStatus() != null && user.getStatus() == 0) {
+            throw new BusinessException(ResultCode.ACCOUNT_DISABLED);
+        }
+
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new BusinessException(ResultCode.INVALID_CREDENTIALS);
         }
@@ -103,6 +111,51 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         this.save(user);
 
         log.info("用户注册成功，用户名：{}", dto.getUsername());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserVO adminAddUser(AdminAddUserDTO dto) {
+        SysUser existingUser = getUserEntityByUsername(dto.getUsername());
+        if (existingUser != null) {
+            throw new BusinessException(ResultCode.USER_ALREADY_EXISTS);
+        }
+
+        SysUser user = new SysUser();
+        user.setUsername(dto.getUsername());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        if (StrUtil.isNotBlank(dto.getRole())) {
+            user.setRole(dto.getRole());
+        } else {
+            user.setRole(RoleConstants.USER);
+        }
+        if (StrUtil.isNotBlank(dto.getRealName())) {
+            user.setRealName(dto.getRealName());
+        }
+        if (StrUtil.isNotBlank(dto.getGender())) {
+            user.setGender(dto.getGender());
+        }
+        if (dto.getAge() != null) {
+            user.setAge(dto.getAge());
+        }
+        if (StrUtil.isNotBlank(dto.getPhone())) {
+            user.setPhone(dto.getPhone());
+        }
+        if (StrUtil.isNotBlank(dto.getEmail())) {
+            user.setEmail(dto.getEmail());
+        }
+        if (StrUtil.isNotBlank(dto.getIdCard())) {
+            user.setIdCard(dto.getIdCard());
+        }
+        if (StrUtil.isNotBlank(dto.getAddress())) {
+            user.setAddress(dto.getAddress());
+        }
+        if (dto.getStatus() != null) {
+            user.setStatus(dto.getStatus());
+        }
+        this.save(user);
+        log.info("管理员添加用户成功，用户名：{}", dto.getUsername());
+        return userConverter.toVO(user);
     }
 
     @Override
@@ -241,6 +294,100 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             throw new BusinessException(ResultCode.USER_NOT_FOUND);
         }
+        return userConverter.toVO(user);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(ChangePasswordDTO dto) {
+        Long userId = getCurrentUserId();
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new BusinessException("原密码错误");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        this.updateById(user);
+        log.info("修改密码成功，用户ID：{}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateProfile(UpdateProfileDTO dto) {
+        Long userId = getCurrentUserId();
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
+
+        if (StrUtil.isNotBlank(dto.getRealName())) {
+            user.setRealName(dto.getRealName());
+        }
+        if (StrUtil.isNotBlank(dto.getGender())) {
+            user.setGender(dto.getGender());
+        }
+        if (dto.getAge() != null) {
+            user.setAge(dto.getAge());
+        }
+        if (StrUtil.isNotBlank(dto.getPhone())) {
+            user.setPhone(dto.getPhone());
+        }
+        if (StrUtil.isNotBlank(dto.getEmail())) {
+            user.setEmail(dto.getEmail());
+        }
+        if (StrUtil.isNotBlank(dto.getAddress())) {
+            user.setAddress(dto.getAddress());
+        }
+        if (StrUtil.isNotBlank(dto.getAvatar())) {
+            user.setAvatar(dto.getAvatar());
+        }
+
+        this.updateById(user);
+        log.info("更新个人资料成功，用户ID：{}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserVO adminUpdateUser(AdminUserUpdateDTO dto) {
+        SysUser user = this.getById(dto.getId());
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND);
+        }
+
+        if (StrUtil.isNotBlank(dto.getRealName())) {
+            user.setRealName(dto.getRealName());
+        }
+        if (StrUtil.isNotBlank(dto.getGender())) {
+            user.setGender(dto.getGender());
+        }
+        if (dto.getAge() != null) {
+            user.setAge(dto.getAge());
+        }
+        if (StrUtil.isNotBlank(dto.getPhone())) {
+            user.setPhone(dto.getPhone());
+        }
+        if (StrUtil.isNotBlank(dto.getEmail())) {
+            user.setEmail(dto.getEmail());
+        }
+        if (StrUtil.isNotBlank(dto.getIdCard())) {
+            user.setIdCard(dto.getIdCard());
+        }
+        if (StrUtil.isNotBlank(dto.getAddress())) {
+            user.setAddress(dto.getAddress());
+        }
+        if (StrUtil.isNotBlank(dto.getRole())) {
+            user.setRole(dto.getRole());
+        }
+        if (dto.getStatus() != null) {
+            user.setStatus(dto.getStatus());
+        }
+
+        this.updateById(user);
+        log.info("管理员更新用户信息成功，用户ID：{}", dto.getId());
         return userConverter.toVO(user);
     }
 }

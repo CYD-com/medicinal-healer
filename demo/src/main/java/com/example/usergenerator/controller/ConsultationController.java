@@ -1,6 +1,7 @@
 package com.example.usergenerator.controller;
 
 import com.example.usergenerator.annotation.RequirePermission;
+import com.example.usergenerator.annotation.LogOperation;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.consultation.ConsultationCreateDTO;
@@ -30,6 +31,7 @@ public class ConsultationController {
 
     @PostMapping("/create")
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
+    @LogOperation(operationType = "create", targetType = "consultation", description = "创建问诊")
     public Result<ConsultationVO> createConsultation(@Valid @RequestBody ConsultationCreateDTO dto) {
         Long userId = permissionUtil.getCurrentUserId();
         ConsultationVO consultation = consultationService.createConsultation(dto, userId);
@@ -84,6 +86,7 @@ public class ConsultationController {
     // 医生端 - 回复问诊
     @PutMapping("/{id}/reply")
     @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    @LogOperation(operationType = "reply", targetType = "consultation", description = "回复问诊")
     public Result<ConsultationVO> replyConsultation(
             @PathVariable Long id,
             @RequestBody java.util.Map<String, String> body) {
