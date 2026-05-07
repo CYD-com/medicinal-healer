@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
         path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
-        meta: { title: '工作台' }
+        meta: { title: '工作台', roles: ['user'] }
       },
       {
         path: '/about',

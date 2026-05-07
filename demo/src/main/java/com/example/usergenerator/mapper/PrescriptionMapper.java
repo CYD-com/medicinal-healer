@@ -13,4 +13,8 @@ public interface PrescriptionMapper extends BaseMapper<Prescription> {
     List<Prescription> selectByUserId(@Param("userId") Long userId);
 
     List<Prescription> selectByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
+
+    List<Prescription> selectByDoctorId(@Param("doctorId") Long doctorId);
+
+    List<Prescription> selectByDoctorIdAndStatus(@Param("doctorId") Long doctorId, @Param("status") String status);
 }

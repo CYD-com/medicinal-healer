@@ -2,6 +2,8 @@ package com.example.usergenerator.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usergenerator.common.ResultCode;
 import com.example.usergenerator.constant.RoleConstants;
@@ -206,6 +208,21 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public List<UserVO> listAllUsers() {
         List<SysUser> users = this.list();
         return userConverter.toVOList(users);
+    }
+
+    @Override
+    public IPage<UserVO> listUsersByPage(int page, int size, String keyword) {
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w
+                .like(SysUser::getUsername, keyword)
+                .or().like(SysUser::getRealName, keyword)
+                .or().like(SysUser::getPhone, keyword)
+            );
+        }
+        wrapper.orderByDesc(SysUser::getCreateTime);
+        IPage<SysUser> pageResult = this.page(new Page<>(page, size), wrapper);
+        return pageResult.convert(userConverter::toVO);
     }
 
     private String generateToken(SysUser user) {

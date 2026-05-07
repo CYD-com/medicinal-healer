@@ -20,8 +20,8 @@ export const getDoctorSchedule = (date?: string) => {
   return request.get('/api/appointment/doctor/schedule', { params: { date } })
 }
 
-export const getDoctorConsultations = (status?: string) => {
-  return request.get('/api/consultation/doctor/list', { params: { status } })
+export const getDoctorConsultations = (status?: string, page?: number, size?: number) => {
+  return request.get('/api/consultation/doctor/list', { params: { status, page, size } })
 }
 
 export const replyConsultation = (id: number, data: { doctorReply: string; diagnosis?: string }) => {

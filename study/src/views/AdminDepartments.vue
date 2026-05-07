@@ -1,7 +1,9 @@
 <template>
   <div class="admin-departments">
     <div class="page-header">
-      <el-button type="primary" @click="showAddDialog">
+      <el-input v-model="searchKeyword" placeholder="搜索科室名称" prefix-icon="el-icon-search" style="width: 300px; margin-right: 16px" clearable @keyup.enter="fetchDepartments" @clear="fetchDepartments" />
+      <el-button type="primary" @click="fetchDepartments">搜索</el-button>
+      <el-button type="success" @click="showAddDialog">
         <el-icon><Plus /></el-icon>
         新增科室
       </el-button>
@@ -23,6 +25,12 @@
         </template>
       </el-table-column>
     </el-table>
+    <Pagination
+      v-model:page="currentPage"
+      v-model:page-size="pageSize"
+      :total="total"
+      @change="fetchDepartments"
+    />
 
     <el-dialog
       v-model="dialogVisible"
@@ -50,6 +58,7 @@ import { ref, onMounted } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { getDepartmentList, createDepartment, updateDepartment, deleteDepartment, type DepartmentForm } from '@/api/admin'
+import Pagination from '@/components/Pagination.vue'
 
 const departments = ref<any[]>([])
 const loading = ref(false)
@@ -57,6 +66,10 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
+const searchKeyword = ref('')
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const form = ref<DepartmentForm>({
   name: '',
@@ -71,9 +84,10 @@ const rules = {
 const fetchDepartments = async () => {
   loading.value = true
   try {
-    const res: any = await getDepartmentList()
+    const res: any = await getDepartmentList({ page: currentPage.value, size: pageSize.value, name: searchKeyword.value })
     if (res.code === 200) {
-      departments.value = res.data
+      departments.value = res.data?.records || res.data || []
+      total.value = res.data?.total || 0
     }
   } catch (e) {
     console.error('获取科室列表失败', e)
@@ -138,4 +152,5 @@ onMounted(fetchDepartments)
   justify-content: flex-end;
   margin-bottom: 20px;
 }
+
 </style>

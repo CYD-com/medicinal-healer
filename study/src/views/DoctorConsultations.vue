@@ -26,20 +26,29 @@
         </template>
       </el-table-column>
       <el-table-column prop="createdAt" label="提交时间" width="180" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="showDetail(row)">查看详情</el-button>
           <el-button
-            v-if="row.status === 'pending' || row.status === 'in_progress'"
             type="success"
             link
             @click="showReplyDialog(row)"
           >
             回复
           </el-button>
+          <el-button type="warning" link @click="showPrescriptionDialog(row)">
+            开具处方
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <Pagination
+      v-model:page="currentPage"
+      v-model:page-size="pageSize"
+      :total="total"
+      @change="fetchConsultations"
+    />
 
     <el-empty v-if="!loading && consultations.length === 0" description="暂无问诊记录" />
 
@@ -79,13 +88,66 @@
         <el-button type="primary" @click="handleReply" :loading="submitting">提交回复</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="prescriptionVisible" title="开具处方" width="700px" top="5vh">
+      <el-form :model="prescriptionForm" label-width="100px" ref="prescriptionFormRef" :rules="prescriptionRules">
+        <el-form-item label="诊断结果" prop="diagnosis">
+          <el-input v-model="prescriptionForm.diagnosis" type="textarea" :rows="2" placeholder="请输入诊断结果" />
+        </el-form-item>
+        <el-form-item label="医嘱">
+          <el-input v-model="prescriptionForm.doctorAdvice" type="textarea" :rows="2" placeholder="请输入医嘱（可选）" />
+        </el-form-item>
+        <el-form-item label="药品列表" prop="items">
+          <div class="drug-list">
+            <div v-for="(item, index) in prescriptionForm.items" :key="index" class="drug-item">
+              <el-select
+                v-model="item.drugId"
+                filterable
+                remote
+                reserve-keyword
+                placeholder="搜索药品名称"
+                :remote-method="loadDrugs"
+                :loading="drugSearching"
+                style="width: 180px"
+                @change="(val: string) => handleDrugSelect(index, val)"
+              >
+                <el-option
+                  v-for="drug in drugOptions"
+                  :key="drug.id"
+                  :label="drug.drugName + (drug.specification ? ' (' + drug.specification + ')' : '')"
+                  :value="drug.id"
+                />
+              </el-select>
+              <el-input v-model="item.specification" placeholder="规格" style="width: 100px" />
+              <el-input v-model="item.dosage" placeholder="用量" style="width: 100px" />
+              <el-input-number v-model="item.quantity" :min="1" :max="100" style="width: 100px" />
+              <el-input v-model="item.unit" placeholder="单位" style="width: 70px" />
+              <el-input-number v-model="item.unitPrice" :min="0" :precision="2" style="width: 100px" />
+              <el-button type="danger" :icon="Delete" circle @click="removeDrug(index)" />
+            </div>
+            <el-button type="primary" link @click="addDrug" style="margin-top: 8px">
+              <el-icon><Plus /></el-icon>
+              添加药品
+            </el-button>
+          </div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="prescriptionVisible = false">取消</el-button>
+        <el-button type="primary" @click="handlePrescriptionSubmit" :loading="prescriptionSubmitting">提交处方</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { Plus, Delete } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { getDoctorConsultations, replyConsultation, completeConsultation } from '@/api/doctor'
+import { createPrescription, type PrescriptionItemForm, type PrescriptionCreateForm } from '@/api/prescription'
+import { searchDrugs, type DrugSearchResult } from '@/api/drug'
+import Pagination from '@/components/Pagination.vue'
 
 const consultations = ref<any[]>([])
 const loading = ref(false)
@@ -95,6 +157,62 @@ const replyVisible = ref(false)
 const submitting = ref(false)
 const currentConsultation = ref<any>(null)
 const replyFormRef = ref<FormInstance>()
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+const prescriptionVisible = ref(false)
+const prescriptionSubmitting = ref(false)
+const prescriptionFormRef = ref<FormInstance>()
+const drugOptions = ref<DrugSearchResult[]>([])
+const drugSearching = ref(false)
+
+const emptyDrug = (): PrescriptionItemForm => ({
+  drugId: '',
+  drugName: '',
+  specification: '',
+  dosage: '',
+  quantity: 1,
+  unit: '',
+  unitPrice: 0
+})
+
+const prescriptionForm = ref<PrescriptionCreateForm>({
+  diagnosis: '',
+  doctorAdvice: '',
+  items: [emptyDrug()]
+})
+
+const prescriptionRules = {
+  diagnosis: [{ required: true, message: '请输入诊断结果', trigger: 'blur' }],
+  items: [{ required: true, message: '请添加至少一个药品', trigger: 'change' }]
+}
+
+const loadDrugs = async (query?: string) => {
+  drugSearching.value = true
+  try {
+    const res: any = await searchDrugs(query)
+    if (res.code === 200) {
+      drugOptions.value = res.data || []
+    }
+  } catch {
+    console.error('获取药品列表失败')
+  } finally {
+    drugSearching.value = false
+  }
+}
+
+const handleDrugSelect = (index: number, drugId: string) => {
+  const drug = drugOptions.value.find(d => d.id === drugId)
+  if (drug) {
+    prescriptionForm.value.items[index].drugId = drug.id
+    prescriptionForm.value.items[index].drugName = drug.drugName
+    prescriptionForm.value.items[index].specification = drug.specification || ''
+    prescriptionForm.value.items[index].unit = drug.unit || ''
+    prescriptionForm.value.items[index].unitPrice = drug.price || 0
+    prescriptionForm.value.items[index].dosage = drug.dosage || ''
+  }
+}
 
 const replyForm = ref({
   id: 0,
@@ -119,9 +237,10 @@ const statusType = (status: string) => {
 const fetchConsultations = async () => {
   loading.value = true
   try {
-    const res: any = await getDoctorConsultations(statusFilter.value)
+    const res: any = await getDoctorConsultations(statusFilter.value, currentPage.value, pageSize.value)
     if (res.code === 200) {
-      consultations.value = res.data
+      consultations.value = res.data?.records || res.data || []
+      total.value = res.data?.total || 0
     }
   } catch (e) {
     console.error('获取问诊列表失败', e)
@@ -181,6 +300,47 @@ const handleComplete = async () => {
   }
 }
 
+const showPrescriptionDialog = (row: any) => {
+  prescriptionForm.value = {
+    diagnosis: row.diagnosis || '',
+    doctorAdvice: '',
+    items: [{ drugId: '', drugName: '', specification: '', dosage: '', quantity: 1, unit: '', unitPrice: 0 }]
+  }
+  prescriptionVisible.value = true
+  loadDrugs()
+}
+
+const addDrug = () => {
+  prescriptionForm.value.items.push(emptyDrug())
+}
+
+const removeDrug = (index: number) => {
+  if (prescriptionForm.value.items.length <= 1) {
+    ElMessage.warning('至少保留一个药品')
+    return
+  }
+  prescriptionForm.value.items.splice(index, 1)
+}
+
+const handlePrescriptionSubmit = async () => {
+  if (!prescriptionFormRef.value) return
+  await prescriptionFormRef.value.validate()
+  if (prescriptionForm.value.items.length === 0) {
+    ElMessage.warning('请添加至少一个药品')
+    return
+  }
+  prescriptionSubmitting.value = true
+  try {
+    await createPrescription(prescriptionForm.value)
+    ElMessage.success('处方开具成功')
+    prescriptionVisible.value = false
+  } catch {
+    // 错误提示已由全局拦截器处理
+  } finally {
+    prescriptionSubmitting.value = false
+  }
+}
+
 onMounted(fetchConsultations)
 </script>
 
@@ -218,4 +378,17 @@ onMounted(fetchConsultations)
   color: #606266;
   font-size: 14px;
 }
+
+.drug-list {
+  width: 100%;
+}
+
+.drug-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 </style>

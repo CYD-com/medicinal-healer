@@ -90,6 +90,12 @@
               </template>
             </el-table-column>
           </el-table>
+          <Pagination
+            v-model:page="currentPage"
+            v-model:page-size="pageSize"
+            :total="total"
+            @change="loadMyAppointments"
+          />
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -138,7 +144,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog title="预约详情" :visible.sync="showDetailModal" width="500px">
+    <el-dialog title="预约详情" v-model="showDetailModal" width="500px">
       <div class="appointment-detail">
         <div class="detail-row">
           <span class="detail-label">预约编号：</span>
@@ -182,7 +188,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog title="排队信息" :visible.sync="showQueueModal" width="400px">
+    <el-dialog title="排队信息" v-model="showQueueModal" width="400px">
       <div class="queue-info">
         <div class="queue-title">
           <span>{{ selectedAppointment?.doctor?.name }}医生 - {{ formatDate(selectedAppointment?.appointmentDate) }}</span>
@@ -225,6 +231,7 @@ import {
   cancelAppointment as cancelAppointmentApi,
   initAppointmentData
 } from '@/api/appointment'
+import Pagination from '@/components/Pagination.vue'
 
 const activeTab = ref<string>('departments')
 const deptSearch = ref<string>('')
@@ -238,6 +245,9 @@ const doctors = ref<Doctor[]>([])
 const myAppointments = ref<Appointment[]>([])
 const loading = ref<boolean>(false)
 const submitting = ref<boolean>(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const showAppointmentModal = ref(false)
 const showDetailModal = ref(false)
@@ -310,10 +320,11 @@ const loadMyAppointments = async (): Promise<void> => {
   try {
     const res = await getAppointments({
       status: appointmentStatus.value || undefined,
-      page: 1,
-      size: 100
+      page: currentPage.value,
+      size: pageSize.value
     })
     myAppointments.value = res.data?.records || []
+    total.value = res.data?.total || 0
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -657,4 +668,5 @@ onMounted(() => {
     text-align: center;
   }
 }
+
 </style>

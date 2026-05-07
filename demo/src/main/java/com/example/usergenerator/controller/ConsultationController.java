@@ -6,6 +6,7 @@ import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.consultation.ConsultationCreateDTO;
 import com.example.usergenerator.entity.Doctor;
+import com.example.usergenerator.entity.Consultation;
 import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.ConsultationService;
 import com.example.usergenerator.util.PermissionUtil;
@@ -16,6 +17,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.util.List;
 
 @Slf4j
@@ -40,10 +43,13 @@ public class ConsultationController {
 
     @GetMapping("/list")
     @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
-    public Result<List<ConsultationVO>> getConsultations(
-            @RequestParam(required = false) String status) {
+    public Result<IPage<ConsultationVO>> getConsultations(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
         Long userId = permissionUtil.getCurrentUserId();
-        List<ConsultationVO> consultations = consultationService.getConsultationsByUserId(userId, status);
+        Page<Consultation> pageParam = new Page<>(page, size);
+        IPage<ConsultationVO> consultations = consultationService.getConsultationsByUserIdPage(userId, status, pageParam);
         return Result.success("查询成功", consultations);
     }
 
@@ -72,14 +78,17 @@ public class ConsultationController {
     // 医生端 - 获取待处理问诊列表
     @GetMapping("/doctor/list")
     @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
-    public Result<List<ConsultationVO>> getDoctorConsultations(
-            @RequestParam(required = false) String status) {
+    public Result<IPage<ConsultationVO>> getDoctorConsultations(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
         Long userId = permissionUtil.getCurrentUserId();
         Doctor doctor = doctorMapper.selectByUserId(userId);
         if (doctor == null) {
             return Result.error(404, "医生信息不存在");
         }
-        List<ConsultationVO> consultations = consultationService.getConsultationsByDoctorId(doctor.getId(), status);
+        Page<Consultation> pageParam = new Page<>(page, size);
+        IPage<ConsultationVO> consultations = consultationService.getConsultationsByDoctorIdPage(doctor.getId(), status, pageParam);
         return Result.success("查询成功", consultations);
     }
 

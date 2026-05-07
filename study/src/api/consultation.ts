@@ -52,12 +52,18 @@ export const createConsultation = (data: ConsultationCreateForm) => {
   return request.post<ApiResponse<ConsultationVO>>('/api/consultation/create', data)
 }
 
-export const getConsultations = (params?: ConsultationQueryParams) => {
-  const queryParams: Record<string, string> = {}
+export const getConsultations = (params?: ConsultationQueryParams & { page?: number; size?: number }) => {
+  const queryParams: Record<string, any> = {}
   if (params?.status) {
     queryParams.status = params.status
   }
-  return request.get<ApiResponse<ConsultationVO[]>>('/api/consultation/list', { params: queryParams })
+  if (params?.page) {
+    queryParams.page = params.page
+  }
+  if (params?.size) {
+    queryParams.size = params.size
+  }
+  return request.get<ApiResponse<any>>('/api/consultation/list', { params: queryParams })
 }
 
 export const getConsultationById = (id: number) => {

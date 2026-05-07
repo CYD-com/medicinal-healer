@@ -3,7 +3,9 @@
     <h2>用户管理</h2>
     <div class="users-card">
       <div class="toolbar">
-        <el-button type="primary" @click="showAddDialog">添加用户</el-button>
+        <el-input v-model="searchKeyword" placeholder="搜索用户名/姓名/手机号" prefix-icon="el-icon-search" style="width: 300px; margin-right: 16px" clearable @keyup.enter="loadUserList" @clear="loadUserList" />
+        <el-button type="primary" @click="loadUserList">搜索</el-button>
+        <el-button type="success" @click="showAddDialog">添加用户</el-button>
       </div>
       <el-table :data="userList" style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80"></el-table-column>
@@ -50,6 +52,7 @@
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="scope">
             <el-button
+              v-if="!isCurrentUser(scope.row)"
               :type="scope.row.status === 1 ? 'warning' : 'success'"
               size="small"
               @click="toggleStatus(scope.row)"
@@ -57,10 +60,16 @@
               {{ scope.row.status === 1 ? '禁用' : '启用' }}
             </el-button>
             <el-button type="primary" size="small" @click="editUser(scope.row)">编辑</el-button>
-            <el-button type="danger" size="small" @click="deleteUser(scope.row)">删除</el-button>
+            <el-button v-if="!isCurrentUser(scope.row)" type="danger" size="small" @click="deleteUser(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
+      <Pagination
+        v-model:page="currentPage"
+        v-model:page-size="pageSize"
+        :total="total"
+        @change="loadUserList"
+      />
     </div>
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px">
@@ -97,7 +106,7 @@
           <el-input v-model="userForm.address" type="textarea" :rows="2" placeholder="请输入地址"></el-input>
         </el-form-item>
         <el-form-item label="角色" required>
-          <el-select v-model="userForm.role" placeholder="请选择角色">
+          <el-select v-model="userForm.role" placeholder="请选择角色" :disabled="isEdit && userForm.id !== null && String(userForm.id) === String(userStore.user?.id)">
             <el-option label="用户" value="user"></el-option>
             <el-option label="医生" value="doctor"></el-option>
             <el-option label="管理员" value="admin"></el-option>
@@ -121,6 +130,14 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserList, addUser, updateUser, deleteUser as deleteUserApi } from '@/api/user'
+import { useUserStore } from '@/stores/user'
+import Pagination from '@/components/Pagination.vue'
+
+const userStore = useUserStore()
+
+const isCurrentUser = (user: UserItem) => {
+  return String(user.id) === String(userStore.user?.id)
+}
 
 interface UserItem {
   id: number
@@ -144,6 +161,10 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const dialogTitle = ref('添加用户')
 const isEdit = ref(false)
+const searchKeyword = ref('')
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const userForm = ref({
   id: null as number | null,
@@ -163,9 +184,10 @@ const userForm = ref({
 const loadUserList = async () => {
   loading.value = true
   try {
-    const res: any = await getUserList()
+    const res: any = await getUserList({ page: currentPage.value, size: pageSize.value, keyword: searchKeyword.value })
     if (res.code === 200) {
-      userList.value = res.data || []
+      userList.value = res.data?.records || res.data || []
+      total.value = res.data?.total || 0
     }
   } catch {
     // 错误提示已由全局拦截器处理
@@ -227,7 +249,11 @@ const handleSubmit = async () => {
   try {
     if (isEdit.value) {
       const { id, realName, gender, age, phone, email, idCard, address, role, status } = userForm.value
-      await updateUser(String(id!), { realName, gender, age, phone, email, idCard, address, role, status })
+      const updateData: any = { realName, gender, age, phone, email, idCard, address, role, status }
+      if (isCurrentUser({ id: id! } as UserItem)) {
+        delete updateData.role
+      }
+      await updateUser(String(id!), updateData)
       ElMessage.success('更新成功')
     } else {
       const { username, password, realName, gender, age, phone, email, idCard, address, role, status } = userForm.value
@@ -242,6 +268,10 @@ const handleSubmit = async () => {
 }
 
 const deleteUser = async (user: UserItem) => {
+  if (isCurrentUser(user)) {
+    ElMessage.warning('不能删除自己的账号')
+    return
+  }
   try {
     await ElMessageBox.confirm(`确定要删除用户 "${user.username}" 吗？`, '提示', {
       confirmButtonText: '确定',
@@ -258,6 +288,10 @@ const deleteUser = async (user: UserItem) => {
 }
 
 const toggleStatus = async (user: UserItem) => {
+  if (isCurrentUser(user)) {
+    ElMessage.warning('不能禁用自己的账号')
+    return
+  }
   const newStatus = user.status === 1 ? 0 : 1
   const actionText = newStatus === 0 ? '禁用' : '启用'
   try {
@@ -324,4 +358,6 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 10px;
 }
+
 </style>
+

@@ -64,16 +64,29 @@ export const createPrescription = (data: PrescriptionCreateForm) => {
   return request.post<ApiResponse<PrescriptionVO>>('/api/prescription/create', data)
 }
 
-export const getPrescriptions = (params?: { status?: string }) => {
-  const queryParams: Record<string, string> = {}
+export const getPrescriptions = (params?: { status?: string; prescriptionNo?: string; page?: number; size?: number }) => {
+  const queryParams: Record<string, string | number> = {}
   if (params?.status) {
     queryParams.status = params.status
+  }
+  if (params?.prescriptionNo) {
+    queryParams.prescriptionNo = params.prescriptionNo
+  }
+  if (params?.page) {
+    queryParams.page = params.page
+  }
+  if (params?.size) {
+    queryParams.size = params.size
   }
   return request.get<ApiResponse<PrescriptionVO[]>>('/api/prescription/list', { params: queryParams })
 }
 
 export const getPrescriptionById = (id: number) => {
   return request.get<ApiResponse<PrescriptionVO>>(`/api/prescription/${id}`)
+}
+
+export const deletePrescription = (id: number) => {
+  return request.delete<ApiResponse<void>>(`/api/prescription/${id}`)
 }
 
 export const updatePrescriptionStatus = (id: number, status: string) => {

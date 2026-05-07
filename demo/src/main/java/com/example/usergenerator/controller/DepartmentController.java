@@ -1,5 +1,8 @@
 package com.example.usergenerator.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usergenerator.annotation.RequirePermission;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
@@ -8,6 +11,7 @@ import com.example.usergenerator.mapper.DepartmentMapper;
 import com.example.usergenerator.vo.appointment.DepartmentVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,17 +27,24 @@ public class DepartmentController {
 
     @GetMapping("/list")
     @RequirePermission(RoleConstants.ADMIN)
-    public Result<List<DepartmentVO>> listDepartments() {
-        List<Department> departments = departmentMapper.selectAllDepartments();
-        List<DepartmentVO> voList = departments.stream()
-                .map(d -> DepartmentVO.builder()
-                        .id(d.getId())
-                        .name(d.getName())
-                        .description(d.getDescription())
-                        .doctorsCount(d.getDoctorsCount())
-                        .build())
-                .collect(Collectors.toList());
-        return Result.success("查询成功", voList);
+    public Result<IPage<DepartmentVO>> listDepartments(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name) {
+        Page<Department> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(name)) {
+            wrapper.like(Department::getName, name);
+        }
+        wrapper.orderByAsc(Department::getId);
+        IPage<Department> departmentPage = departmentMapper.selectPage(pageParam, wrapper);
+        IPage<DepartmentVO> voPage = departmentPage.convert(d -> DepartmentVO.builder()
+                .id(d.getId())
+                .name(d.getName())
+                .description(d.getDescription())
+                .doctorsCount(d.getDoctorsCount())
+                .build());
+        return Result.success("查询成功", voPage);
     }
 
     @PostMapping("/create")

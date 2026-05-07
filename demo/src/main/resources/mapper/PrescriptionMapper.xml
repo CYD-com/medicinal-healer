@@ -26,4 +26,12 @@
         SELECT * FROM t_prescription WHERE user_id = #{userId} AND status = #{status} AND deleted = 0 ORDER BY created_at DESC
     </select>
 
+    <select id="selectByDoctorId" resultMap="BaseResultMap">
+        SELECT * FROM t_prescription WHERE doctor_id = #{doctorId} AND deleted = 0 ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByDoctorIdAndStatus" resultMap="BaseResultMap">
+        SELECT * FROM t_prescription WHERE doctor_id = #{doctorId} AND status = #{status} AND deleted = 0 ORDER BY created_at DESC
+    </select>
+
 </mapper>

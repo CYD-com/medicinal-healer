@@ -1,5 +1,8 @@
 package com.example.usergenerator.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usergenerator.dto.consultation.ConsultationCreateDTO;
 import com.example.usergenerator.entity.Consultation;
@@ -86,6 +89,55 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
     }
 
     @Override
+    public IPage<ConsultationVO> getConsultationsByUserIdPage(Long userId, String status, Page<Consultation> page) {
+        LambdaQueryWrapper<Consultation> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Consultation::getUserId, userId);
+        if (status != null && !status.isEmpty()) {
+            wrapper.eq(Consultation::getStatus, status);
+        }
+        wrapper.orderByDesc(Consultation::getCreatedAt);
+        IPage<Consultation> consultationPage = baseMapper.selectPage(page, wrapper);
+
+        if (consultationPage.getRecords().isEmpty()) {
+            return consultationPage.convert(c -> convertToVO(c));
+        }
+
+        List<Long> doctorIds = consultationPage.getRecords().stream()
+                .map(Consultation::getDoctorId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+                .collect(Collectors.toMap(Doctor::getId, d -> d));
+
+        return consultationPage.convert(c -> convertToVO(c, doctorMap.get(c.getDoctorId())));
+    }
+
+    @Override
+    public IPage<ConsultationVO> getConsultationsByStatusPage(String status, Page<Consultation> page) {
+        LambdaQueryWrapper<Consultation> wrapper = new LambdaQueryWrapper<>();
+        if (status != null && !status.isEmpty()) {
+            wrapper.eq(Consultation::getStatus, status);
+        }
+        wrapper.orderByDesc(Consultation::getCreatedAt);
+        IPage<Consultation> consultationPage = baseMapper.selectPage(page, wrapper);
+
+        if (consultationPage.getRecords().isEmpty()) {
+            return consultationPage.convert(c -> convertToVO(c));
+        }
+
+        List<Long> doctorIds = consultationPage.getRecords().stream()
+                .map(Consultation::getDoctorId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+                .collect(Collectors.toMap(Doctor::getId, d -> d));
+
+        return consultationPage.convert(c -> convertToVO(c, doctorMap.get(c.getDoctorId())));
+    }
+
+    @Override
     public ConsultationVO getConsultationById(Long id) {
         Consultation consultation = baseMapper.selectById(id);
         if (consultation == null) {
@@ -128,6 +180,18 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         return consultations.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public IPage<ConsultationVO> getConsultationsByDoctorIdPage(Long doctorId, String status, Page<Consultation> page) {
+        LambdaQueryWrapper<Consultation> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Consultation::getDoctorId, doctorId);
+        if (status != null && !status.isEmpty()) {
+            wrapper.eq(Consultation::getStatus, status);
+        }
+        wrapper.orderByDesc(Consultation::getCreatedAt);
+        IPage<Consultation> consultationPage = baseMapper.selectPage(page, wrapper);
+        return consultationPage.convert(this::convertToVO);
     }
 
     @Override

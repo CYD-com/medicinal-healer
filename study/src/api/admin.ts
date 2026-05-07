@@ -33,8 +33,8 @@ export const getStatistics = () => {
   return request.get('/api/statistics/overview')
 }
 
-export const getDepartmentList = () => {
-  return request.get('/api/department/list')
+export const getDepartmentList = (params?: { page?: number; size?: number; name?: string }) => {
+  return request.get('/api/department/list', { params })
 }
 
 export const createDepartment = (data: DepartmentForm) => {
@@ -49,8 +49,8 @@ export const deleteDepartment = (id: number) => {
   return request.delete(`/api/department/delete/${id}`)
 }
 
-export const getDoctorList = () => {
-  return request.get('/api/doctor/list')
+export const getDoctorList = (params?: { page?: number; size?: number; name?: string }) => {
+  return request.get('/api/doctor/list', { params })
 }
 
 export const createDoctor = (data: DoctorForm) => {

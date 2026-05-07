@@ -1,9 +1,10 @@
 import request from '@/utils/request'
 
-export function getUserList() {
+export function getUserList(params?: { page?: number; size?: number; keyword?: string }) {
   return request({
     url: '/api/user/list',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 
@@ -100,6 +101,14 @@ export function updateUserInfo(data: {
 }) {
   return request({
     url: '/api/user/info',
+    method: 'put',
+    data
+  })
+}
+
+export function changePassword(data: { oldPassword: string; newPassword: string }) {
+  return request({
+    url: '/api/user/password',
     method: 'put',
     data
   })

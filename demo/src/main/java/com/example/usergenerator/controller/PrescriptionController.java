@@ -13,6 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.usergenerator.entity.Prescription;
+
 import javax.validation.Valid;
 import java.util.List;
 
@@ -27,7 +31,7 @@ public class PrescriptionController {
     private final PermissionUtil permissionUtil;
 
     @PostMapping("/create")
-    @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     @LogOperation(operationType = "create", targetType = "prescription", description = "创建处方")
     public Result<PrescriptionVO> createPrescription(@Valid @RequestBody PrescriptionCreateDTO dto) {
         Long userId = permissionUtil.getCurrentUserId();
@@ -36,16 +40,37 @@ public class PrescriptionController {
     }
 
     @GetMapping("/list")
-    @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
-    public Result<List<PrescriptionVO>> getPrescriptions(
-            @RequestParam(required = false) String status) {
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<IPage<PrescriptionVO>> getPrescriptions(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String prescriptionNo,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
         Long userId = permissionUtil.getCurrentUserId();
-        List<PrescriptionVO> prescriptions = prescriptionService.getPrescriptionsByUserId(userId, status);
-        return Result.success("查询成功", prescriptions);
+        String role = permissionUtil.getCurrentUserRole();
+        Page<Prescription> pageParam = new Page<>(page, size);
+        IPage<PrescriptionVO> result;
+        if (RoleConstants.DOCTOR.equals(role)) {
+            result = prescriptionService.getPrescriptionsByDoctorUserIdPage(userId, status, prescriptionNo, pageParam);
+        } else {
+            result = prescriptionService.getPrescriptionsByUserIdPage(userId, status, pageParam);
+        }
+        return Result.success("查询成功", result);
+    }
+
+    @DeleteMapping("/{id}")
+    @RequirePermission({RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    @LogOperation(operationType = "delete", targetType = "prescription", description = "删除处方")
+    public Result<Void> deletePrescription(@PathVariable Long id) {
+        boolean success = prescriptionService.deletePrescription(id);
+        if (!success) {
+            return Result.error(404, "处方不存在");
+        }
+        return Result.success("删除成功");
     }
 
     @GetMapping("/{id}")
-    @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     public Result<PrescriptionVO> getPrescriptionById(@PathVariable Long id) {
         PrescriptionVO prescription = prescriptionService.getPrescriptionById(id);
         return Result.success("查询成功", prescription);

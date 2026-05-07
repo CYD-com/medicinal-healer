@@ -1,6 +1,7 @@
 package com.example.usergenerator.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usergenerator.annotation.RequirePermission;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
@@ -53,17 +54,30 @@ public class DrugController {
     }
 
     @GetMapping("/detail/{id}")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR})
     public Result<DrugVO> getDrugDetail(@PathVariable @NotNull(message = "药品ID不能为空") String id) {
         DrugVO vo = drugService.getDrugById(id);
         return Result.success("查询药品成功", vo);
     }
 
     @PostMapping("/list")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR})
     public Result<IPage<DrugVO>> getDrugList(@RequestBody DrugQueryDTO query) {
         IPage<DrugVO> page = drugService.getDrugList(query);
         return Result.success("查询药品列表成功", page);
+    }
+
+    
+    @GetMapping("/search")
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR})
+    public Result<List<DrugVO>> searchDrugs(
+            @RequestParam(required = false) String drugName,
+            @RequestParam(defaultValue = "50") int size) {
+        DrugQueryDTO query = new DrugQueryDTO();
+        query.setDrugName(drugName);
+        query.setSize(size);
+        IPage<DrugVO> result = drugService.getDrugList(query);
+        return Result.success(result.getRecords());
     }
 
     // 库存管理

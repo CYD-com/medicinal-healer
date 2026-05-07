@@ -1,10 +1,30 @@
 <template>
   <div class="doctor-prescriptions">
-    <div class="page-header">
-      <el-button type="primary" @click="showCreateDialog">
-        <el-icon><Plus /></el-icon>
-        开具处方
+    <div class="search-bar">
+      <el-input
+        v-model="searchForm.prescriptionNo"
+        placeholder="处方编号"
+        clearable
+        style="width: 200px; margin-right: 12px"
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      />
+      <el-select
+        v-model="searchForm.status"
+        placeholder="处方状态"
+        clearable
+        style="width: 150px; margin-right: 12px"
+        @change="handleSearch"
+      >
+        <el-option label="有效" value="valid" />
+        <el-option label="已过期" value="expired" />
+        <el-option label="已作废" value="void" />
+      </el-select>
+      <el-button type="primary" @click="handleSearch">
+        <el-icon><Search /></el-icon>
+        查询
       </el-button>
+      <el-button @click="handleReset">重置</el-button>
     </div>
 
     <el-table :data="prescriptions" stripe border style="width: 100%" v-loading="loading">
@@ -24,47 +44,27 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="createdAt" label="开具时间" width="180" />
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column prop="createdAt" label="开具时间" width="130" />
+      <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="showDetail(row)">查看</el-button>
+          <el-popconfirm title="确定要删除这条处方吗？" @confirm="handleDelete(row)">
+            <template #reference>
+              <el-button type="danger" link>删除</el-button>
+            </template>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-empty v-if="!loading && prescriptions.length === 0" description="暂无处方记录" />
+    <Pagination
+      v-model:page="currentPage"
+      v-model:page-size="pageSize"
+      :total="total"
+      @change="fetchPrescriptions"
+    />
 
-    <el-dialog v-model="createVisible" title="开具处方" width="700px" top="5vh">
-      <el-form :model="form" label-width="100px" ref="formRef" :rules="rules">
-        <el-form-item label="诊断结果" prop="diagnosis">
-          <el-input v-model="form.diagnosis" type="textarea" :rows="2" placeholder="请输入诊断结果" />
-        </el-form-item>
-        <el-form-item label="医嘱">
-          <el-input v-model="form.doctorAdvice" type="textarea" :rows="2" placeholder="请输入医嘱（可选）" />
-        </el-form-item>
-        <el-form-item label="药品列表" prop="items">
-          <div class="drug-list">
-            <div v-for="(item, index) in form.items" :key="index" class="drug-item">
-              <el-input v-model="item.drugName" placeholder="药品名称" style="width: 160px" />
-              <el-input v-model="item.specification" placeholder="规格" style="width: 100px" />
-              <el-input v-model="item.dosage" placeholder="用量" style="width: 100px" />
-              <el-input-number v-model="item.quantity" :min="1" :max="100" style="width: 100px" />
-              <el-input v-model="item.unit" placeholder="单位" style="width: 70px" />
-              <el-input-number v-model="item.unitPrice" :min="0" :precision="2" style="width: 100px" />
-              <el-button type="danger" :icon="Delete" circle @click="removeDrug(index)" />
-            </div>
-            <el-button type="primary" link @click="addDrug" style="margin-top: 8px">
-              <el-icon><Plus /></el-icon>
-              添加药品
-            </el-button>
-          </div>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">提交处方</el-button>
-      </template>
-    </el-dialog>
+    <el-empty v-if="!loading && prescriptions.length === 0" description="暂无处方记录" />
 
     <el-dialog v-model="detailVisible" title="处方详情" width="600px">
       <div v-if="currentPrescription" class="prescription-detail">
@@ -100,45 +100,54 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance } from 'element-plus'
-import { getPrescriptions, createPrescription, type PrescriptionItemForm, type PrescriptionCreateForm } from '@/api/prescription'
+import { getPrescriptions, getPrescriptionById, deletePrescription, type PrescriptionVO } from '@/api/prescription'
+import Pagination from '@/components/Pagination.vue'
 
 const prescriptions = ref<any[]>([])
 const loading = ref(false)
-const createVisible = ref(false)
 const detailVisible = ref(false)
-const submitting = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 const currentPrescription = ref<any>(null)
-const formRef = ref<FormInstance>()
 
-const emptyDrug = (): PrescriptionItemForm => ({
-  drugId: '',
-  drugName: '',
-  specification: '',
-  dosage: '',
-  quantity: 1,
-  unit: '',
-  unitPrice: 0
+const searchForm = ref({
+  prescriptionNo: '',
+  status: ''
 })
 
-const form = ref<PrescriptionCreateForm>({
-  diagnosis: '',
-  doctorAdvice: '',
-  items: [emptyDrug()]
-})
+const statusTagType = (status: string) => {
+  const map: Record<string, string> = {
+    valid: 'success',
+    expired: 'warning',
+    void: 'danger'
+  }
+  return (map[status] || 'info') as any
+}
 
-const rules = {
-  diagnosis: [{ required: true, message: '请输入诊断结果', trigger: 'blur' }],
-  items: [{ required: true, message: '请添加至少一个药品', trigger: 'change' }]
+const statusLabel = (status: string) => {
+  const map: Record<string, string> = {
+    valid: '有效',
+    expired: '已过期',
+    void: '已作废'
+  }
+  return map[status] || status
 }
 
 const fetchPrescriptions = async () => {
   loading.value = true
   try {
-    const res: any = await getPrescriptions()
+    const res: any = await getPrescriptions({
+      page: currentPage.value,
+      size: pageSize.value,
+      prescriptionNo: searchForm.value.prescriptionNo || undefined,
+      status: searchForm.value.status || undefined
+    })
     if (res.code === 200) {
-      prescriptions.value = res.data
+      prescriptions.value = res.data?.records || res.data || []
+      total.value = res.data?.total || 0
     }
   } catch (e) {
     console.error('获取处方列表失败', e)
@@ -147,46 +156,50 @@ const fetchPrescriptions = async () => {
   }
 }
 
-const showCreateDialog = () => {
-  form.value = { diagnosis: '', doctorAdvice: '', items: [emptyDrug()] }
-  createVisible.value = true
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchPrescriptions()
 }
 
-const addDrug = () => {
-  form.value.items.push(emptyDrug())
+const handleReset = () => {
+  searchForm.value = { prescriptionNo: '', status: '' }
+  currentPage.value = 1
+  fetchPrescriptions()
 }
 
-const removeDrug = (index: number) => {
-  if (form.value.items.length <= 1) {
-    ElMessage.warning('至少保留一个药品')
-    return
-  }
-  form.value.items.splice(index, 1)
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  fetchPrescriptions()
 }
 
-const handleSubmit = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate()
-  if (form.value.items.length === 0) {
-    ElMessage.warning('请添加至少一个药品')
-    return
-  }
-  submitting.value = true
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchPrescriptions()
+}
+
+const showDetail = async (row: any) => {
   try {
-    await createPrescription(form.value)
-    ElMessage.success('处方开具成功')
-    createVisible.value = false
+    const res: any = await getPrescriptionById(row.id)
+    if (res.code === 200) {
+      currentPrescription.value = res.data
+    } else {
+      currentPrescription.value = row
+    }
+  } catch {
+    currentPrescription.value = row
+  }
+  detailVisible.value = true
+}
+
+const handleDelete = async (row: any) => {
+  try {
+    await deletePrescription(row.id)
+    ElMessage.success('删除成功')
     fetchPrescriptions()
   } catch {
     // 错误提示已由全局拦截器处理
-  } finally {
-    submitting.value = false
   }
-}
-
-const showDetail = (row: any) => {
-  currentPrescription.value = row
-  detailVisible.value = true
 }
 
 onMounted(fetchPrescriptions)
@@ -197,10 +210,11 @@ onMounted(fetchPrescriptions)
   padding: 0;
 }
 
-.page-header {
+.search-bar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .drug-list {
@@ -234,4 +248,5 @@ onMounted(fetchPrescriptions)
   color: #303133;
   margin-top: 12px;
 }
+
 </style>

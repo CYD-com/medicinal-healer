@@ -18,6 +18,7 @@ import com.example.usergenerator.util.TokenBlacklistUtil;
 import com.example.usergenerator.vo.user.UserGenerateVO;
 import com.example.usergenerator.vo.user.UserLoginVO;
 import com.example.usergenerator.vo.user.UserVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -81,9 +82,12 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    @RequirePermission(RoleConstants.USER)
-    public Result<List<UserVO>> getUserList() {
-        List<UserVO> userList = sysUserService.listAllUsers();
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<IPage<UserVO>> getUserList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword) {
+        IPage<UserVO> userList = sysUserService.listUsersByPage(page, size, keyword);
         return Result.success("查询成功", userList);
     }
 
@@ -130,7 +134,7 @@ public class UserController {
     }
 
     @PostMapping("/avatar")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     public Result<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return Result.error(400, "文件不能为空");
@@ -162,28 +166,28 @@ public class UserController {
     }
 
     @PutMapping("/avatar")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     public Result<Void> updateAvatar(@RequestBody AvatarUpdateDTO dto) {
         sysUserService.updateAvatar(dto.getAvatar());
         return Result.success("更新成功");
     }
 
     @GetMapping("/info")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     public Result<UserVO> getCurrentUserInfo() {
         UserVO userVO = sysUserService.getCurrentUserInfo();
         return Result.success("查询成功", userVO);
     }
 
     @PutMapping("/info")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     public Result<Void> updateUserInfo(@Valid @RequestBody UserUpdateDTO dto) {
         sysUserService.updateUserInfo(dto);
         return Result.success("更新成功");
     }
 
     @PutMapping("/password")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     @RepeatSubmit(timeout = 3000)
     public Result<Void> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
         sysUserService.changePassword(dto);
@@ -191,7 +195,7 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    @RequirePermission(RoleConstants.USER)
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
     public Result<Void> updateProfile(@Valid @RequestBody UpdateProfileDTO dto) {
         sysUserService.updateProfile(dto);
         return Result.success("资料更新成功");

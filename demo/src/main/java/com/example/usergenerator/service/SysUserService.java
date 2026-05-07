@@ -1,5 +1,6 @@
 package com.example.usergenerator.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.usergenerator.dto.user.UserLoginDTO;
 import com.example.usergenerator.dto.user.UserRegisterDTO;
@@ -33,6 +34,8 @@ public interface SysUserService extends IService<SysUser> {
     UserVO getUserByUsername(String username);
 
     List<UserVO> listAllUsers();
+
+    IPage<UserVO> listUsersByPage(int page, int size, String keyword);
 
     void deleteUser(Long id);
 

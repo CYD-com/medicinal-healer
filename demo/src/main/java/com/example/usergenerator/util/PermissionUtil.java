@@ -61,4 +61,24 @@ public class PermissionUtil {
         }
         return userId;
     }
+
+    public String getCurrentUserRole() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            throw new BusinessException(ResultCode.UNAUTHORIZED);
+        }
+        HttpServletRequest request = attributes.getRequest();
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        } else {
+            token = request.getHeader("X-Token");
+        }
+
+        String role = jwtUtil.getRole(token);
+        if (role == null) {
+            throw new BusinessException(ResultCode.FORBIDDEN, "Token中未包含角色信息");
+        }
+        return role;
+    }
 }

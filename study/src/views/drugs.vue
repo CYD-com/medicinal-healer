@@ -43,6 +43,7 @@
               <el-option label="中成药" value="chinese"></el-option>
             </el-select>
             <el-button type="primary" @click="handleSearch">搜索</el-button>
+            <el-button type="success" @click="showAddDrugDialog">添加药品</el-button>
           </div>
           <!-- 药品列表表格 -->
           <el-table 
@@ -66,12 +67,20 @@
               </template>
             </el-table-column>
             <el-table-column prop="stock" label="库存" width="100"></el-table-column>
-            <el-table-column label="操作" width="120">
+            <el-table-column label="操作" width="240">
               <template #default="scope">
                 <el-button type="primary" size="small" @click="viewDrugDetail(scope.row)">详情</el-button>
+                <el-button type="warning" size="small" @click="showEditDrugDialog(scope.row)">编辑</el-button>
+                <el-button type="danger" size="small" @click="handleDeleteDrug(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
+          <Pagination
+            v-model:page="drugCurrentPage"
+            v-model:page-size="drugPageSize"
+            :total="drugTotal"
+            @change="fetchDrugList"
+          />
         </div>
       </el-tab-pane>
       <!-- 药品详情标签页 -->
@@ -173,17 +182,242 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- 添加药品对话框 -->
+    <el-dialog v-model="addDrugDialogVisible" title="添加药品" width="800px" :close-on-click-modal="false">
+      <el-form :model="addDrugForm" :rules="addDrugRules" ref="addDrugFormRef" label-width="100px">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="药品名称" prop="drugName">
+              <el-input v-model="addDrugForm.drugName" placeholder="请输入药品名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="通用名称" prop="genericName">
+              <el-input v-model="addDrugForm.genericName" placeholder="请输入通用名称" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="规格" prop="specification">
+              <el-input v-model="addDrugForm.specification" placeholder="请输入规格" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="生产厂家" prop="manufacturer">
+              <el-input v-model="addDrugForm.manufacturer" placeholder="请输入生产厂家" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="分类" prop="category">
+              <el-select v-model="addDrugForm.category" placeholder="请选择分类" style="width: 100%">
+                <el-option
+                  v-for="cat in categories"
+                  :key="cat.id"
+                  :label="cat.name"
+                  :value="cat.name"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="类型" prop="type">
+              <el-select v-model="addDrugForm.type" placeholder="请选择类型" style="width: 100%">
+                <el-option label="西药" value="western" />
+                <el-option label="中成药" value="chinese" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="价格" prop="price">
+              <el-input-number v-model="addDrugForm.price" :min="0" :precision="2" :step="1" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="库存" prop="stock">
+              <el-input-number v-model="addDrugForm.stock" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="单位" prop="unit">
+              <el-input v-model="addDrugForm.unit" placeholder="如：盒、瓶" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="批准文号">
+              <el-input v-model="addDrugForm.approvalNo" placeholder="请输入批准文号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="剂型">
+              <el-input v-model="addDrugForm.form" placeholder="如：片剂、胶囊" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="保质期">
+              <el-input v-model="addDrugForm.shelfLife" placeholder="如：24个月" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="存储条件">
+              <el-input v-model="addDrugForm.storage" placeholder="如：常温保存" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="用法用量">
+          <el-input v-model="addDrugForm.dosage" type="textarea" :rows="2" placeholder="请输入用法用量" />
+        </el-form-item>
+        <el-form-item label="适应症">
+          <el-input v-model="addDrugForm.indications" type="textarea" :rows="2" placeholder="请输入适应症" />
+        </el-form-item>
+        <el-form-item label="禁忌症">
+          <el-input v-model="addDrugForm.contraindications" type="textarea" :rows="2" placeholder="请输入禁忌症" />
+        </el-form-item>
+        <el-form-item label="不良反应">
+          <el-input v-model="addDrugForm.adverseReactions" type="textarea" :rows="2" placeholder="请输入不良反应" />
+        </el-form-item>
+        <el-form-item label="注意事项">
+          <el-input v-model="addDrugForm.precautions" type="textarea" :rows="2" placeholder="请输入注意事项" />
+        </el-form-item>
+        <el-form-item label="药物相互作用">
+          <el-input v-model="addDrugForm.drugInteractions" type="textarea" :rows="2" placeholder="请输入药物相互作用" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addDrugDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="addDrugLoading" @click="submitAddDrug">确认添加</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑药品对话框 -->
+    <el-dialog v-model="editDrugDialogVisible" title="编辑药品" width="800px" :close-on-click-modal="false">
+      <el-form :model="editDrugForm" :rules="editDrugRules" ref="editDrugFormRef" label-width="100px">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="药品名称" prop="drugName">
+              <el-input v-model="editDrugForm.drugName" placeholder="请输入药品名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="通用名称" prop="genericName">
+              <el-input v-model="editDrugForm.genericName" placeholder="请输入通用名称" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="规格" prop="specification">
+              <el-input v-model="editDrugForm.specification" placeholder="请输入规格" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="生产厂家" prop="manufacturer">
+              <el-input v-model="editDrugForm.manufacturer" placeholder="请输入生产厂家" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="分类" prop="category">
+              <el-select v-model="editDrugForm.category" placeholder="请选择分类" style="width: 100%">
+                <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.name" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="类型" prop="type">
+              <el-select v-model="editDrugForm.type" placeholder="请选择类型" style="width: 100%">
+                <el-option label="西药" value="western" />
+                <el-option label="中成药" value="chinese" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="价格" prop="price">
+              <el-input-number v-model="editDrugForm.price" :min="0" :precision="2" :step="1" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="库存" prop="stock">
+              <el-input-number v-model="editDrugForm.stock" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="单位" prop="unit">
+              <el-input v-model="editDrugForm.unit" placeholder="如：盒、瓶" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="批准文号">
+              <el-input v-model="editDrugForm.approvalNo" placeholder="请输入批准文号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="剂型">
+              <el-input v-model="editDrugForm.form" placeholder="如：片剂、胶囊" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="保质期">
+              <el-input v-model="editDrugForm.shelfLife" placeholder="如：24个月" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="存储条件">
+              <el-input v-model="editDrugForm.storage" placeholder="如：常温保存" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="用法用量">
+          <el-input v-model="editDrugForm.dosage" type="textarea" :rows="2" placeholder="请输入用法用量" />
+        </el-form-item>
+        <el-form-item label="适应症">
+          <el-input v-model="editDrugForm.indications" type="textarea" :rows="2" placeholder="请输入适应症" />
+        </el-form-item>
+        <el-form-item label="禁忌症">
+          <el-input v-model="editDrugForm.contraindications" type="textarea" :rows="2" placeholder="请输入禁忌症" />
+        </el-form-item>
+        <el-form-item label="不良反应">
+          <el-input v-model="editDrugForm.adverseReactions" type="textarea" :rows="2" placeholder="请输入不良反应" />
+        </el-form-item>
+        <el-form-item label="注意事项">
+          <el-input v-model="editDrugForm.precautions" type="textarea" :rows="2" placeholder="请输入注意事项" />
+        </el-form-item>
+        <el-form-item label="药物相互作用">
+          <el-input v-model="editDrugForm.drugInteractions" type="textarea" :rows="2" placeholder="请输入药物相互作用" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDrugDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="editDrugLoading" @click="submitEditDrug">确认修改</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 // 导入Vue 3组合式API和相关组件
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { Goods, Warning, Close, Clock } from '@element-plus/icons-vue'
-// 导入药品相关API
-import { getDrugList, getDrugDetail, getInventorySummary, getInventoryList, getDrugCategories } from '@/api/drug'
+import { getDrugList, getDrugDetail, getInventorySummary, getInventoryList, getDrugCategories, createDrug, deleteDrug, updateDrug } from '@/api/drug'
 import type { DrugItem, DrugCategory, InventoryItem, InventorySummary } from '@/types'
+import Pagination from '@/components/Pagination.vue'
 
 // 响应式状态管理
 const activeTab = ref<string>('drug-list') // 当前激活的标签页
@@ -204,6 +438,86 @@ const inventorySummary = ref<InventorySummary>({ // 库存概览
 })
 const inventoryItems = ref<InventoryItem[]>([]) // 库存列表
 
+const drugCurrentPage = ref<number>(1)
+const drugPageSize = ref<number>(10)
+const drugTotal = ref<number>(0)
+
+const editDrugDialogVisible = ref<boolean>(false)
+const editDrugLoading = ref<boolean>(false)
+const editDrugFormRef = ref<FormInstance>()
+const editDrugForm = ref({
+  id: '',
+  drugName: '',
+  genericName: '',
+  specification: '',
+  manufacturer: '',
+  category: '',
+  type: '',
+  price: 0,
+  stock: 0,
+  unit: '',
+  approvalNo: '',
+  form: '',
+  shelfLife: '',
+  storage: '',
+  dosage: '',
+  indications: '',
+  contraindications: '',
+  adverseReactions: '',
+  precautions: '',
+  drugInteractions: ''
+})
+
+const editDrugRules = {
+  drugName: [{ required: true, message: '请输入药品名称', trigger: 'blur' }],
+  genericName: [{ required: true, message: '请输入通用名称', trigger: 'blur' }],
+  specification: [{ required: true, message: '请输入规格', trigger: 'blur' }],
+  manufacturer: [{ required: true, message: '请输入生产厂家', trigger: 'blur' }],
+  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
+  price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+  stock: [{ required: true, message: '请输入库存', trigger: 'blur' }],
+  unit: [{ required: true, message: '请输入单位', trigger: 'blur' }]
+}
+
+// 添加药品相关状态
+const addDrugDialogVisible = ref<boolean>(false)
+const addDrugLoading = ref<boolean>(false)
+const addDrugFormRef = ref<FormInstance>()
+const addDrugForm = ref({
+  drugName: '',
+  genericName: '',
+  specification: '',
+  manufacturer: '',
+  category: '',
+  type: '',
+  price: 0,
+  stock: 0,
+  unit: '',
+  approvalNo: '',
+  form: '',
+  shelfLife: '',
+  storage: '',
+  dosage: '',
+  indications: '',
+  contraindications: '',
+  adverseReactions: '',
+  precautions: '',
+  drugInteractions: ''
+})
+
+const addDrugRules = {
+  drugName: [{ required: true, message: '请输入药品名称', trigger: 'blur' }],
+  genericName: [{ required: true, message: '请输入通用名称', trigger: 'blur' }],
+  specification: [{ required: true, message: '请输入规格', trigger: 'blur' }],
+  manufacturer: [{ required: true, message: '请输入生产厂家', trigger: 'blur' }],
+  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
+  price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+  stock: [{ required: true, message: '请输入库存', trigger: 'blur' }],
+  unit: [{ required: true, message: '请输入单位', trigger: 'blur' }]
+}
+
 /**
  * 获取药品列表
  * @description 调用后端接口获取药品列表，支持搜索和筛选
@@ -215,11 +529,12 @@ const fetchDrugList = async (): Promise<void> => {
       drugName: drugSearch.value,
       category: drugCategory.value,
       type: drugType.value,
-      page: 1,
-      size: 100 // 一次性获取较多数据，避免分页
+      page: drugCurrentPage.value,
+      size: drugPageSize.value
     }
     const response: any = await getDrugList(query)
     drugs.value = response.data.records
+    drugTotal.value = response.data.total || 0
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -247,7 +562,7 @@ const fetchInventorySummary = async (): Promise<void> => {
 const fetchInventoryList = async (): Promise<void> => {
   try {
     const response: any = await getInventoryList(1, 100)
-    inventoryList.value = response.data.records
+    inventoryItems.value = response.data.records
   } catch {
     // 错误提示已由全局拦截器处理
   }
@@ -287,6 +602,112 @@ const viewDrugDetail = async (drug: DrugItem): Promise<void> => {
 // 监听搜索和筛选条件变化
 const handleSearch = (): void => {
   fetchDrugList()
+}
+
+// 删除药品
+const handleDeleteDrug = async (drug: DrugItem): Promise<void> => {
+  try {
+    await ElMessageBox.confirm(`确定要删除药品「${drug.drugName}」吗？删除后将同时清除库存记录。`, '删除确认', {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteDrug(drug.id)
+    ElMessage.success('删除成功')
+    fetchDrugList()
+    fetchInventorySummary()
+  } catch (error) {
+    if (error === 'cancel') return
+  }
+}
+
+// 显示添加药品对话框
+const showAddDrugDialog = (): void => {
+  addDrugForm.value = {
+    drugName: '',
+    genericName: '',
+    specification: '',
+    manufacturer: '',
+    category: '',
+    type: '',
+    price: 0,
+    stock: 0,
+    unit: '',
+    approvalNo: '',
+    form: '',
+    shelfLife: '',
+    storage: '',
+    dosage: '',
+    indications: '',
+    contraindications: '',
+    adverseReactions: '',
+    precautions: '',
+    drugInteractions: ''
+  }
+  addDrugDialogVisible.value = true
+}
+
+// 提交添加药品表单
+const submitAddDrug = async (): Promise<void> => {
+  if (!addDrugFormRef.value) return
+  await addDrugFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    addDrugLoading.value = true
+    try {
+      await createDrug(addDrugForm.value)
+      ElMessage.success('添加药品成功')
+      addDrugDialogVisible.value = false
+      fetchDrugList()
+    } catch {
+      // 错误提示已由全局拦截器处理
+    } finally {
+      addDrugLoading.value = false
+    }
+  })
+}
+
+const showEditDrugDialog = (drug: DrugItem): void => {
+  editDrugForm.value = {
+    id: drug.id,
+    drugName: drug.drugName,
+    genericName: drug.genericName,
+    specification: drug.specification,
+    manufacturer: drug.manufacturer,
+    category: drug.category,
+    type: drug.type,
+    price: drug.price,
+    stock: drug.stock,
+    unit: drug.unit,
+    approvalNo: drug.approvalNo || '',
+    form: drug.form || '',
+    shelfLife: drug.shelfLife || '',
+    storage: drug.storage || '',
+    dosage: drug.dosage || '',
+    indications: drug.indications || '',
+    contraindications: drug.contraindications || '',
+    adverseReactions: drug.adverseReactions || '',
+    precautions: drug.precautions || '',
+    drugInteractions: drug.drugInteractions || ''
+  }
+  editDrugDialogVisible.value = true
+}
+
+const submitEditDrug = async (): Promise<void> => {
+  if (!editDrugFormRef.value) return
+  await editDrugFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    editDrugLoading.value = true
+    try {
+      await updateDrug(editDrugForm.value.id, editDrugForm.value)
+      ElMessage.success('修改药品成功')
+      editDrugDialogVisible.value = false
+      fetchDrugList()
+    } catch {
+      // 错误提示已由全局拦截器处理
+    } finally {
+      editDrugLoading.value = false
+    }
+  })
 }
 
 // 组件加载时获取数据
@@ -418,6 +839,8 @@ onMounted(async (): Promise<void> => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+
 
 /* 响应式样式 */
 @media (max-width: 768px) {

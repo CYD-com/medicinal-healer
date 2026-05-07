@@ -1,8 +1,8 @@
-<template>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿<template>
   <div class="consultation-container">
     <div class="page-header">
       <h2>在线问诊</h2>
-      <div class="header-actions">
+      <div class="header-actions" v-if="userStore.isPatient">
         <el-button type="primary" @click="showNewConsultationDialog">
           <el-icon><Plus /></el-icon>
           发起问诊
@@ -46,10 +46,16 @@
               </div>
             </div>
           </div>
+          <Pagination
+            v-model:page="currentPage"
+            v-model:page-size="pageSize"
+            :total="total"
+            @change="loadConsultations"
+          />
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="发起问诊" name="new-consultation">
+      <el-tab-pane label="发起问诊" name="new-consultation" v-if="userStore.isPatient">
         <div class="new-consultation-form">
           <div class="symptom-selector">
             <h3>选择症状</h3>
@@ -153,7 +159,7 @@
           </template>
         </div>
 
-        <div v-if="chatConsultation?.status === 'in_progress'" class="chat-input-area">
+        <div v-if="chatConsultation?.status === 'in_progress' && userStore.isDoctor" class="chat-input-area">
           <el-input v-model="replyMessage" type="textarea" :rows="3" placeholder="输入回复内容..." />
         </div>
       </div>
@@ -161,10 +167,10 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="chatDialogVisible = false">关闭</el-button>
-          <template v-if="chatConsultation?.status === 'pending'">
+          <template v-if="chatConsultation?.status === 'pending' && userStore.isDoctor">
             <el-button type="success" @click="acceptConsultation">接受问诊</el-button>
           </template>
-          <template v-else-if="chatConsultation?.status === 'in_progress'">
+          <template v-else-if="chatConsultation?.status === 'in_progress' && userStore.isDoctor">
             <el-button type="primary" @click="sendReply">发送回复</el-button>
             <el-button type="success" @click="completeConsultation">结束问诊</el-button>
           </template>
@@ -178,11 +184,18 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, User, Clock, Money } from '@element-plus/icons-vue'
-import { getConsultations, createConsultation, updateConsultation } from '@/api/consultation'
+import { getConsultations, createConsultation, cancelConsultation } from '@/api/consultation'
+import { replyConsultation, completeConsultation as completeConsultationApi } from '@/api/doctor'
 import type { ConsultationVO } from '@/api/consultation'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const activeTab = ref('my-consultations')
 const consultations = ref<ConsultationVO[]>([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const symptomList = ['发烧', '咳嗽', '头痛', '胃痛', '皮疹', '关节疼痛', '失眠', '视力问题', '其他']
 
@@ -243,8 +256,9 @@ const toggleSymptom = (symptom: string) => {
 
 const loadConsultations = async () => {
   try {
-    const res = await getConsultations({}) as any
-    consultations.value = res.data || []
+    const res = await getConsultations({ page: currentPage.value, size: pageSize.value }) as any
+    consultations.value = res.data?.records || res.data || []
+    total.value = res.data?.total || 0
   } catch (error) {
     console.error('加载问诊列表失败:', error)
   }
@@ -300,7 +314,7 @@ const sendReply = async () => {
   }
 
   try {
-    await updateConsultationStatus(chatConsultation.value.id, 'in_progress', replyMessage.value)
+    await replyConsultation(chatConsultation.value.id, { doctorReply: replyMessage.value })
     ElMessage.success('回复发送成功')
     loadConsultations()
     chatDialogVisible.value = false
@@ -312,7 +326,7 @@ const sendReply = async () => {
 const acceptConsultation = async () => {
   if (!chatConsultation.value) return
   try {
-    await updateConsultationStatus(chatConsultation.value.id, 'in_progress')
+    await replyConsultation(chatConsultation.value.id, { doctorReply: '已接受问诊' })
     ElMessage.success('已接受问诊')
     loadConsultations()
     chatDialogVisible.value = false
@@ -330,7 +344,7 @@ const completeConsultation = async () => {
       inputPlaceholder: '请输入诊断结果'
     })
     
-    await updateConsultationStatus(chatConsultation.value.id, 'completed', '', value || '')
+    await completeConsultationApi(chatConsultation.value.id, { diagnosis: value || '' })
     ElMessage.success('问诊已结束')
     loadConsultations()
     chatDialogVisible.value = false
@@ -338,17 +352,6 @@ const completeConsultation = async () => {
     if (error !== 'cancel') {
       console.error('结束问诊失败:', error)
     }
-  }
-}
-
-const updateConsultationStatus = async (id: number, status: string, reply?: string, diagnosis?: string) => {
-  try {
-    const data: any = { status }
-    if (reply) data.doctorReply = reply
-    if (diagnosis) data.diagnosis = diagnosis
-    await updateConsultation(id, data)
-  } catch (error) {
-    throw error
   }
 }
 

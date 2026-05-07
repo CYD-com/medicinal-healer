@@ -19,6 +19,7 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => role.value === 'admin')
   const isDoctor = computed(() => role.value === 'doctor')
+  const isPatient = computed(() => role.value === 'user')
   const user = computed(() => ({
     id: userInfo.value?.id,
     username: username.value,
@@ -127,6 +128,7 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     isAdmin,
     isDoctor,
+    isPatient,
     user,
     setToken,
     setUsername,

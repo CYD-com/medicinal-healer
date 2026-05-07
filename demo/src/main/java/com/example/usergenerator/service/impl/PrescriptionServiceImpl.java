@@ -1,6 +1,8 @@
 package com.example.usergenerator.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usergenerator.common.ResultCode;
 import com.example.usergenerator.dto.prescription.PrescriptionCreateDTO;
@@ -27,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,10 +54,17 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
     @Override
     @Transactional(rollbackFor = Exception.class)
     public PrescriptionVO createPrescription(PrescriptionCreateDTO dto, Long userId) {
+        LambdaQueryWrapper<Doctor> doctorWrapper = new LambdaQueryWrapper<>();
+        doctorWrapper.eq(Doctor::getUserId, userId);
+        Doctor doctor = doctorMapper.selectOne(doctorWrapper);
+        if (doctor == null) {
+            throw new RuntimeException("医生信息不存在，无法开具处方");
+        }
+
         Prescription prescription = new Prescription();
         prescription.setPrescriptionNo(generatePrescriptionNo());
         prescription.setUserId(userId);
-        prescription.setDoctorId(dto.getDoctorId());
+        prescription.setDoctorId(doctor.getId());
         prescription.setDiagnosis(dto.getDiagnosis());
         prescription.setDoctorAdvice(dto.getDoctorAdvice());
         prescription.setStatus("pending");
@@ -143,6 +153,46 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
     }
 
     @Override
+    public List<PrescriptionVO> getPrescriptionsByDoctorUserId(Long userId, String status) {
+        LambdaQueryWrapper<Doctor> doctorWrapper = new LambdaQueryWrapper<>();
+        doctorWrapper.eq(Doctor::getUserId, userId);
+        Doctor doctor = doctorMapper.selectOne(doctorWrapper);
+        if (doctor == null) {
+            return Collections.emptyList();
+        }
+
+        List<Prescription> prescriptions;
+        if (StringUtils.hasText(status)) {
+            prescriptions = baseMapper.selectByDoctorIdAndStatus(doctor.getId(), status);
+        } else {
+            prescriptions = baseMapper.selectByDoctorId(doctor.getId());
+        }
+
+        if (prescriptions.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> prescriptionIds = prescriptions.stream()
+                .map(Prescription::getId)
+                .collect(Collectors.toList());
+
+        LambdaQueryWrapper<PrescriptionItem> itemWrapper = new LambdaQueryWrapper<>();
+        itemWrapper.in(PrescriptionItem::getPrescriptionId, prescriptionIds);
+        List<PrescriptionItem> allItems = prescriptionItemMapper.selectList(itemWrapper);
+
+        Map<Long, List<PrescriptionItem>> itemMap = allItems.stream()
+                .collect(Collectors.groupingBy(PrescriptionItem::getPrescriptionId));
+
+        List<PrescriptionVO> result = new ArrayList<>();
+        for (Prescription p : prescriptions) {
+            List<PrescriptionItem> items = itemMap.getOrDefault(p.getId(), new ArrayList<>());
+            result.add(convertToVO(p, doctor, items));
+        }
+
+        return result;
+    }
+
+    @Override
     public PrescriptionVO getPrescriptionById(Long id) {
         Prescription prescription = baseMapper.selectById(id);
         if (prescription == null) {
@@ -204,6 +254,80 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
         }
 
         return result;
+    }
+
+    @Override
+    public IPage<PrescriptionVO> getPrescriptionsByUserIdPage(Long userId, String status, Page<Prescription> page) {
+        LambdaQueryWrapper<Prescription> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Prescription::getUserId, userId);
+        wrapper.eq(Prescription::getDeleted, 0);
+        if (StringUtils.hasText(status)) {
+            wrapper.eq(Prescription::getStatus, status);
+        }
+        wrapper.orderByDesc(Prescription::getCreatedAt);
+        IPage<Prescription> prescriptionPage = baseMapper.selectPage(page, wrapper);
+        return prescriptionPage.convert(p -> {
+            Doctor doctor = doctorMapper.selectById(p.getDoctorId());
+            LambdaQueryWrapper<PrescriptionItem> iw = new LambdaQueryWrapper<>();
+            iw.eq(PrescriptionItem::getPrescriptionId, p.getId());
+            return convertToVO(p, doctor, prescriptionItemMapper.selectList(iw));
+        });
+    }
+
+    @Override
+    public IPage<PrescriptionVO> getPrescriptionsByDoctorUserIdPage(Long userId, String status, String prescriptionNo, Page<Prescription> page) {
+        LambdaQueryWrapper<Doctor> doctorWrapper = new LambdaQueryWrapper<>();
+        doctorWrapper.eq(Doctor::getUserId, userId);
+        Doctor doctor = doctorMapper.selectOne(doctorWrapper);
+        if (doctor == null) {
+            return new Page<PrescriptionVO>(page.getCurrent(), page.getSize(), 0);
+        }
+
+        LambdaQueryWrapper<Prescription> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Prescription::getDoctorId, doctor.getId());
+        wrapper.eq(Prescription::getDeleted, 0);
+        if (StringUtils.hasText(status)) {
+            wrapper.eq(Prescription::getStatus, status);
+        }
+        if (StringUtils.hasText(prescriptionNo)) {
+            wrapper.like(Prescription::getPrescriptionNo, prescriptionNo);
+        }
+        wrapper.orderByDesc(Prescription::getCreatedAt);
+        IPage<Prescription> prescriptionPage = baseMapper.selectPage(page, wrapper);
+        return prescriptionPage.convert(p -> {
+            LambdaQueryWrapper<PrescriptionItem> iw = new LambdaQueryWrapper<>();
+            iw.eq(PrescriptionItem::getPrescriptionId, p.getId());
+            return convertToVO(p, doctor, prescriptionItemMapper.selectList(iw));
+        });
+    }
+
+    @Override
+    public boolean deletePrescription(Long id) {
+        Prescription prescription = baseMapper.selectById(id);
+        if (prescription == null) {
+            return false;
+        }
+        return baseMapper.deleteById(id) > 0;
+    }
+
+    @Override
+    public IPage<PrescriptionVO> getPrescriptionListPage(PrescriptionQueryDTO query, Page<Prescription> page) {
+        LambdaQueryWrapper<Prescription> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Prescription::getDeleted, 0);
+        if (StringUtils.hasText(query.getPrescriptionNo())) {
+            wrapper.like(Prescription::getPrescriptionNo, query.getPrescriptionNo());
+        }
+        if (StringUtils.hasText(query.getStatus())) {
+            wrapper.eq(Prescription::getStatus, query.getStatus());
+        }
+        wrapper.orderByDesc(Prescription::getCreatedAt);
+        IPage<Prescription> prescriptionPage = baseMapper.selectPage(page, wrapper);
+        return prescriptionPage.convert(p -> {
+            Doctor doctor = doctorMapper.selectById(p.getDoctorId());
+            LambdaQueryWrapper<PrescriptionItem> iw = new LambdaQueryWrapper<>();
+            iw.eq(PrescriptionItem::getPrescriptionId, p.getId());
+            return convertToVO(p, doctor, prescriptionItemMapper.selectList(iw));
+        });
     }
 
     private PrescriptionVO convertToVO(Prescription prescription) {

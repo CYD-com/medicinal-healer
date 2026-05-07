@@ -77,7 +77,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getUserInfo, updateUserInfo, updateAvatar, uploadAvatar } from '@/api/user'
+import { getUserInfo, updateUserInfo, updateAvatar, uploadAvatar, changePassword } from '@/api/user'
 
 const router = useRouter()
 const activeTab = ref('info')
@@ -159,7 +159,7 @@ const handleSaveProfile = async () => {
   }
 }
 
-const handleChangePassword = () => {
+const handleChangePassword = async () => {
   if (!passwordForm.value.oldPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
     ElMessage.warning('请填写完整密码信息')
     return
@@ -168,8 +168,16 @@ const handleChangePassword = () => {
     ElMessage.warning('两次输入的密码不一致')
     return
   }
-  ElMessage.success('密码修改成功')
-  passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+  try {
+    await changePassword({
+      oldPassword: passwordForm.value.oldPassword,
+      newPassword: passwordForm.value.newPassword
+    })
+    ElMessage.success('密码修改成功')
+    passwordForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
+  } catch {
+    // 错误提示已由全局拦截器处理
+  }
 }
 
 onMounted(() => {

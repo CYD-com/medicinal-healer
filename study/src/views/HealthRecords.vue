@@ -231,7 +231,8 @@ const loadIndicators = async () => {
     const response = await healthRecordAPI.getIndicators({
       type: indicatorType.value
     })
-    indicators.value = response.records || []
+    const data = response.data || response
+    indicators.value = data.records || data || []
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -242,7 +243,7 @@ const loadIndicators = async () => {
 const viewVisitDetail = async (visit) => {
   try {
     const response = await healthRecordAPI.getVisitDetail(visit.visitId)
-    visitDetail.value = response
+    visitDetail.value = response.data || response
     visitDetailVisible.value = true
   } catch {
     // 错误提示已由全局拦截器处理

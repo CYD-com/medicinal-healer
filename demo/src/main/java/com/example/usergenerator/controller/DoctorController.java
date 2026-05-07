@@ -11,6 +11,10 @@ import com.example.usergenerator.vo.appointment.DepartmentVO;
 import com.example.usergenerator.vo.appointment.DoctorVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -28,32 +32,20 @@ public class DoctorController {
 
     @GetMapping("/list")
     @RequirePermission(RoleConstants.ADMIN)
-    public Result<List<DoctorVO>> listDoctors() {
-        List<Doctor> doctors = doctorMapper.selectAllDoctors();
-        List<DoctorVO> voList = doctors.stream().map(d -> {
-            Department dept = departmentMapper.selectById(d.getDepartmentId());
-            DepartmentVO deptVO = dept != null ? DepartmentVO.builder()
-                    .id(dept.getId())
-                    .name(dept.getName())
-                    .description(dept.getDescription())
-                    .doctorsCount(dept.getDoctorsCount())
-                    .build() : null;
-            List<String> specialties = d.getSpecialty() != null
-                    ? Arrays.asList(d.getSpecialty().split("、"))
-                    : List.of();
-            return DoctorVO.builder()
-                    .doctorId(d.getId())
-                    .name(d.getName())
-                    .title(d.getTitle())
-                    .avatar(d.getAvatar())
-                    .rating(d.getRating())
-                    .consultationCount(d.getConsultationCount())
-                    .specialty(specialties)
-                    .department(deptVO)
-                    .userId(d.getUserId())
-                    .build();
-        }).collect(Collectors.toList());
-        return Result.success("查询成功", voList);
+    public Result<IPage<DoctorVO>> listDoctors(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name) {
+        Page<Doctor> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<Doctor> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(name)) {
+            wrapper.like(Doctor::getName, name);
+        }
+        wrapper.orderByAsc(Doctor::getId);
+        IPage<Doctor> doctorPage = doctorMapper.selectPage(pageParam, wrapper);
+
+        IPage<DoctorVO> voPage = doctorPage.convert(d -> convertToVO(d));
+        return Result.success("查询成功", voPage);
     }
 
     @PostMapping("/create")

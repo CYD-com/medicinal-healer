@@ -1,11 +1,10 @@
 <template>
   <div class="prescriptions-container">
-    <h2>处方管理</h2>
+    <h2>{{ userStore.isAdmin ? '处方管理' : '我的处方' }}</h2>
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="我的处方" name="my-prescriptions">
+      <el-tab-pane :label="userStore.isAdmin ? '全部处方' : '我的处方'" name="my-prescriptions">
         <div class="my-prescriptions-card">
           <div class="filter-bar">
-            <el-button type="primary" @click="openCreateDialog">新增处方</el-button>
             <el-input v-model="prescriptionSearch" placeholder="搜索处方" prefix-icon="el-icon-search" style="width: 300px; margin-right: 16px" @input="handleSearch"></el-input>
             <el-select v-model="prescriptionStatus" placeholder="选择状态" style="width: 200px" @change="loadPrescriptions">
               <el-option label="全部" value=""></el-option>
@@ -43,13 +42,23 @@
                 {{ formatDateTime(scope.row.createdAt) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column label="操作" :width="userStore.isAdmin ? '280' : '180'" fixed="right">
               <template #default="scope">
                 <el-button type="primary" size="small" @click="viewPrescription(scope.row)">查看</el-button>
                 <el-button v-if="scope.row.status === 'approved'" type="success" size="small" @click="downloadPrescription(scope.row)">下载</el-button>
+                <template v-if="userStore.isAdmin && scope.row.status === 'pending'">
+                  <el-button type="success" size="small" @click="approvePrescription(scope.row)">通过</el-button>
+                  <el-button type="danger" size="small" @click="rejectPrescription(scope.row)">拒绝</el-button>
+                </template>
               </template>
             </el-table-column>
           </el-table>
+          <Pagination
+            v-model:page="currentPage"
+            v-model:page-size="pageSize"
+            :total="total"
+            @change="loadPrescriptions"
+          />
           <div v-if="filteredPrescriptions.length === 0 && !loading" class="empty-state">
             <el-empty description="暂无处方数据"></el-empty>
           </div>
@@ -111,6 +120,10 @@
           <div class="prescription-actions">
             <el-button @click="activeTab = 'my-prescriptions'">返回列表</el-button>
             <el-button v-if="selectedPrescription.status === 'approved'" type="primary" @click="downloadPrescription(selectedPrescription)">下载处方</el-button>
+            <template v-if="userStore.isAdmin && selectedPrescription.status === 'pending'">
+              <el-button type="success" @click="approvePrescription(selectedPrescription)">审核通过</el-button>
+              <el-button type="danger" @click="rejectPrescription(selectedPrescription)">拒绝</el-button>
+            </template>
           </div>
         </div>
         <div v-else class="empty-state">
@@ -119,104 +132,17 @@
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog v-model="createDialogVisible" title="新增处方" width="900px" :close-on-click-modal="false">
-      <el-form :model="createForm" :rules="createRules" ref="createFormRef" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="主治医生" prop="doctorId">
-              <el-select v-model="createForm.doctorId" placeholder="请选择医生" style="width: 100%">
-                <el-option
-                  v-for="doc in doctorList"
-                  :key="doc.doctorId"
-                  :label="`${doc.name} - ${doc.title}`"
-                  :value="doc.doctorId"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="诊断" prop="diagnosis">
-          <el-input v-model="createForm.diagnosis" placeholder="请输入诊断内容" />
-        </el-form-item>
-        <el-form-item label="医嘱">
-          <el-input v-model="createForm.doctorAdvice" type="textarea" :rows="2" placeholder="请输入医嘱" />
-        </el-form-item>
-
-        <el-divider>药品信息</el-divider>
-
-        <div v-for="(item, index) in createForm.items" :key="index" class="drug-item-row">
-          <el-row :gutter="12">
-            <el-col :span="6">
-              <el-form-item :label="index === 0 ? '药品' : ''" :prop="`items.${index}.drugId`" :rules="{ required: true, message: '请选择药品', trigger: 'change' }">
-                <el-select
-                  v-model="item.drugId"
-                  filterable
-                  placeholder="搜索选择药品"
-                  style="width: 100%"
-                  @change="(val: string) => handleDrugSelect(index, val)"
-                >
-                  <el-option
-                    v-for="drug in drugList"
-                    :key="drug.drugId"
-                    :label="drug.drugName"
-                    :value="drug.drugId"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="4">
-              <el-form-item :label="index === 0 ? '规格' : ''">
-                <el-input v-model="item.specification" placeholder="规格" disabled />
-              </el-form-item>
-            </el-col>
-            <el-col :span="4">
-              <el-form-item :label="index === 0 ? '用法' : ''">
-                <el-input v-model="item.dosage" placeholder="用法用量" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="3">
-              <el-form-item :label="index === 0 ? '数量' : ''">
-                <el-input-number v-model="item.quantity" :min="1" style="width: 100%" @change="calcItemAmount(index)" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="3">
-              <el-form-item :label="index === 0 ? '单价' : ''">
-                <el-input-number v-model="item.unitPrice" :min="0" :precision="2" :step="1" style="width: 100%" @change="calcItemAmount(index)" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="3">
-              <el-form-item :label="index === 0 ? '金额' : ''">
-                <span class="amount-text">¥{{ formatMoney(item.amount || 0) }}</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="1">
-              <el-form-item :label="index === 0 ? '操作' : ''">
-                <el-button type="danger" :icon="'Delete'" circle size="small" @click="removeDrugItem(index)" :disabled="createForm.items.length <= 1" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-
-        <el-button type="primary" plain @click="addDrugItem" style="width: 100%; margin-top: 8px;">+ 添加药品</el-button>
-
-        <div class="total-amount-bar">
-          <span>合计金额：</span>
-          <span class="total-amount">¥{{ formatMoney(calcTotalAmount) }}</span>
-        </div>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="createDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="createLoading" @click="submitCreateForm">确认创建</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, type FormInstance } from 'element-plus'
-import { getPrescriptions, getPrescriptionById, createPrescription, type PrescriptionVO, type PrescriptionCreateForm } from '@/api/prescription'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getPrescriptions, getPrescriptionById, updatePrescriptionStatus, type PrescriptionVO } from '@/api/prescription'
+import { useUserStore } from '@/stores/user'
+import Pagination from '@/components/Pagination.vue'
+
+const userStore = useUserStore()
 
 const activeTab = ref('my-prescriptions')
 const prescriptionSearch = ref('')
@@ -224,38 +150,9 @@ const prescriptionStatus = ref('')
 const selectedPrescription = ref<PrescriptionVO | null>(null)
 const loading = ref(false)
 const myPrescriptions = ref<PrescriptionVO[]>([])
-
-const createDialogVisible = ref(false)
-const createLoading = ref(false)
-const createFormRef = ref<FormInstance>()
-const doctorList = ref<any[]>([])
-const drugList = ref<any[]>([])
-
-const emptyDrugItem = () => ({
-  drugId: '',
-  drugName: '',
-  specification: '',
-  dosage: '',
-  quantity: 1,
-  unit: '盒',
-  unitPrice: 0,
-  amount: 0
-})
-
-const createForm = ref<PrescriptionCreateForm>({
-  doctorId: undefined,
-  diagnosis: '',
-  doctorAdvice: '',
-  items: [emptyDrugItem()]
-})
-
-const createRules = {
-  diagnosis: [{ required: true, message: '请输入诊断内容', trigger: 'blur' }]
-}
-
-const calcTotalAmount = computed(() => {
-  return createForm.value.items.reduce((sum, item) => sum + (item.amount || 0), 0)
-})
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const filteredPrescriptions = computed(() => {
   if (!prescriptionSearch.value) {
@@ -273,9 +170,12 @@ const loadPrescriptions = async () => {
   loading.value = true
   try {
     const res: any = await getPrescriptions({
-      status: prescriptionStatus.value || undefined
+      status: prescriptionStatus.value || undefined,
+      page: currentPage.value,
+      size: pageSize.value
     })
-    myPrescriptions.value = res.data || []
+    myPrescriptions.value = res.data?.records || res.data || []
+    total.value = res.data?.total || 0
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -346,79 +246,34 @@ const getStatusText = (status: string) => {
   return statusMap[status] || status
 }
 
-const openCreateDialog = async () => {
-  createForm.value = {
-    doctorId: undefined,
-    diagnosis: '',
-    doctorAdvice: '',
-    items: [emptyDrugItem()]
-  }
-  createDialogVisible.value = true
-  await Promise.all([loadDoctorList(), loadDrugList()])
-}
-
-const loadDoctorList = async () => {
+const approvePrescription = async (prescription: PrescriptionVO) => {
   try {
-    const res: any = await (await import('@/api/appointment')).getDoctors()
-    doctorList.value = res.data || []
-  } catch (e) {
-    console.error('获取医生列表失败:', e)
+    await ElMessageBox.confirm(`确定要通过处方 ${prescription.prescriptionNo} 吗？`, '审核确认', {
+      confirmButtonText: '通过',
+      cancelButtonText: '取消',
+      type: 'success'
+    })
+    await updatePrescriptionStatus(prescription.id, 'approved')
+    ElMessage.success('审核通过')
+    loadPrescriptions()
+  } catch (error) {
+    if (error === 'cancel') return
   }
 }
 
-const loadDrugList = async () => {
+const rejectPrescription = async (prescription: PrescriptionVO) => {
   try {
-    const res: any = await (await import('@/api/drug')).getDrugList({ page: 1, size: 100 })
-    drugList.value = res.data?.records || []
-  } catch (e) {
-    console.error('获取药品列表失败:', e)
+    await ElMessageBox.confirm(`确定要拒绝处方 ${prescription.prescriptionNo} 吗？`, '审核确认', {
+      confirmButtonText: '拒绝',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await updatePrescriptionStatus(prescription.id, 'rejected')
+    ElMessage.success('已拒绝')
+    loadPrescriptions()
+  } catch (error) {
+    if (error === 'cancel') return
   }
-}
-
-const handleDrugSelect = (index: number, drugId: string) => {
-  const drug = drugList.value.find((d: any) => d.drugId === drugId)
-  if (drug) {
-    createForm.value.items[index].drugName = drug.drugName
-    createForm.value.items[index].specification = drug.specification || ''
-    createForm.value.items[index].unitPrice = Number(drug.price) || 0
-    createForm.value.items[index].unit = '盒'
-    calcItemAmount(index)
-  }
-}
-
-const calcItemAmount = (index: number) => {
-  const item = createForm.value.items[index]
-  item.amount = Number(((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2))
-}
-
-const addDrugItem = () => {
-  createForm.value.items.push(emptyDrugItem())
-}
-
-const removeDrugItem = (index: number) => {
-  createForm.value.items.splice(index, 1)
-}
-
-const submitCreateForm = async () => {
-  if (!createFormRef.value) return
-  await createFormRef.value.validate(async (valid) => {
-    if (!valid) return
-    if (!createForm.value.items.some(item => item.drugId)) {
-      ElMessage.warning('请至少添加一个药品')
-      return
-    }
-    createLoading.value = true
-    try {
-      await createPrescription(createForm.value)
-      ElMessage.success('创建处方成功')
-      createDialogVisible.value = false
-      loadPrescriptions()
-    } catch {
-      // 错误提示已由全局拦截器处理
-    } finally {
-      createLoading.value = false
-    }
-  })
 }
 
 onMounted(() => {
@@ -522,6 +377,7 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+
 @media (max-width: 768px) {
   .my-prescriptions-card,
   .prescription-detail-card {
@@ -542,32 +398,5 @@ onMounted(() => {
     width: 100% !important;
     margin-right: 0 !important;
   }
-}
-
-.drug-item-row {
-  margin-bottom: 4px;
-}
-
-.amount-text {
-  font-weight: bold;
-  color: #409eff;
-}
-
-.total-amount-bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 16px;
-  padding: 12px 16px;
-  background: #f5f7fa;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.total-amount {
-  font-size: 20px;
-  font-weight: bold;
-  color: #e6a23c;
-  margin-left: 8px;
 }
 </style>
