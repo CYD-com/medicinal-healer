@@ -45,6 +45,9 @@ public class Consultation {
     @TableField("doctor_reply")
     private String doctorReply;
 
+    @TableField("patient_message")
+    private String patientMessage;
+
     @TableField("diagnosis")
     private String diagnosis;
 

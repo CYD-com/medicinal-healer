@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS consultation (
     medical_history TEXT COMMENT '既往病史',
     current_medication TEXT COMMENT '当前用药',
     doctor_reply TEXT COMMENT '医生回复',
+    patient_message TEXT COMMENT '患者最新消息',
     diagnosis TEXT COMMENT '诊断结果',
     status VARCHAR(20) DEFAULT 'pending' COMMENT '状态：pending-待回复，in_progress-进行中，completed-已完成，closed-已关闭',
     created_at DATETIME NOT NULL COMMENT '创建时间',

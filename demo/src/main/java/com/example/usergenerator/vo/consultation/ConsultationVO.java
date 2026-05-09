@@ -27,6 +27,8 @@ public class ConsultationVO {
 
     private String doctorReply;
 
+    private String patientMessage;
+
     private String diagnosis;
 
     private String status;

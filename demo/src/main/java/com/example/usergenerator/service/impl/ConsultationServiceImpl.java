@@ -11,6 +11,7 @@ import com.example.usergenerator.exception.BusinessException;
 import com.example.usergenerator.mapper.ConsultationMapper;
 import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.ConsultationService;
+import com.example.usergenerator.service.ConsultationMessageService;
 import com.example.usergenerator.vo.consultation.ConsultationVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Consultation> implements ConsultationService {
 
     private final DoctorMapper doctorMapper;
+    private final ConsultationMessageService consultationMessageService;
     private final ConsultationMapper consultationMapper;
 
     private static final Map<String, String> STATUS_MAP = Map.of(
@@ -206,6 +208,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         }
         if (doctorReply != null) {
             consultation.setDoctorReply(doctorReply);
+            consultationMessageService.sendMessage(consultation.getId(), "doctor", doctorId, doctorReply);
         }
         if (diagnosis != null) {
             consultation.setDiagnosis(diagnosis);
@@ -215,6 +218,23 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         }
         consultation.setUpdatedAt(LocalDateTime.now());
         baseMapper.updateById(consultation);
+        return convertToVO(consultation);
+    }
+
+    @Override
+    @Transactional
+    public ConsultationVO patientReply(Long id, Long userId, String message) {
+        Consultation consultation = baseMapper.selectById(id);
+        if (consultation == null) {
+            throw new BusinessException("问诊记录不存在");
+        }
+        if (!consultation.getUserId().equals(userId)) {
+            throw new BusinessException("无权操作此问诊");
+        }
+        consultation.setPatientMessage(message);
+        consultation.setUpdatedAt(LocalDateTime.now());
+        baseMapper.updateById(consultation);
+        consultationMessageService.sendMessage(consultation.getId(), "patient", userId, message);
         return convertToVO(consultation);
     }
 
@@ -234,6 +254,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         vo.setMedicalHistory(consultation.getMedicalHistory());
         vo.setCurrentMedication(consultation.getCurrentMedication());
         vo.setDoctorReply(consultation.getDoctorReply());
+        vo.setPatientMessage(consultation.getPatientMessage());
         vo.setDiagnosis(consultation.getDiagnosis());
         vo.setStatus(consultation.getStatus());
         vo.setStatusText(STATUS_MAP.getOrDefault(consultation.getStatus(), consultation.getStatus()));

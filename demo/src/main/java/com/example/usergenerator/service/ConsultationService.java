@@ -20,4 +20,5 @@ public interface ConsultationService extends IService<Consultation> {
     IPage<ConsultationVO> getConsultationsByDoctorIdPage(Long doctorId, String status, Page<Consultation> page);
     IPage<ConsultationVO> getConsultationsByStatusPage(String status, Page<Consultation> page);
     ConsultationVO updateConsultationByDoctor(Long id, Long doctorId, String doctorReply, String diagnosis, String status);
+    ConsultationVO patientReply(Long id, Long userId, String message);
 }

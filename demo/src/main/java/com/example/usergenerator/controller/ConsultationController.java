@@ -9,8 +9,10 @@ import com.example.usergenerator.entity.Doctor;
 import com.example.usergenerator.entity.Consultation;
 import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.service.ConsultationService;
+import com.example.usergenerator.service.ConsultationMessageService;
 import com.example.usergenerator.util.PermissionUtil;
 import com.example.usergenerator.vo.consultation.ConsultationVO;
+import com.example.usergenerator.vo.consultation.ConsultationMessageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +31,7 @@ import java.util.List;
 public class ConsultationController {
 
     private final ConsultationService consultationService;
+    private final ConsultationMessageService consultationMessageService;
     private final PermissionUtil permissionUtil;
     private final DoctorMapper doctorMapper;
 
@@ -125,5 +128,27 @@ public class ConsultationController {
         String diagnosis = body.get("diagnosis");
         ConsultationVO consultation = consultationService.updateConsultationByDoctor(id, doctor.getId(), null, diagnosis, "completed");
         return Result.success("问诊已完成", consultation);
+    }
+
+    // 患者端 - 回复消息
+    @PutMapping("/{id}/patient-reply")
+    @RequirePermission({RoleConstants.USER, RoleConstants.ADMIN})
+    @LogOperation(operationType = "reply", targetType = "consultation", description = "患者回复问诊")
+    public Result<ConsultationVO> patientReply(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
+        Long userId = permissionUtil.getCurrentUserId();
+        String message = body.get("message");
+        if (message == null || message.trim().isEmpty()) {
+            return Result.error(400, "回复内容不能为空");
+        }
+        ConsultationVO consultation = consultationService.patientReply(id, userId, message);
+        return Result.success("回复成功", consultation);
+    }
+
+    @GetMapping("/{id}/messages")
+    @RequirePermission({RoleConstants.USER, RoleConstants.DOCTOR, RoleConstants.ADMIN})
+    public Result<java.util.List<ConsultationMessageVO>> getMessages(@PathVariable Long id) {
+        return Result.success(consultationMessageService.getMessagesByConsultationId(id));
     }
 }

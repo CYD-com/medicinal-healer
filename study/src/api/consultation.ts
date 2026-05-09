@@ -38,7 +38,18 @@ export interface ConsultationVO {
   patientName?: string
   diagnosis?: string
   doctorReply?: string
+  patientMessage?: string
   prescriptionSuggestion?: string
+  createdAt: string
+}
+
+export interface ConsultationMessageVO {
+  id: number
+  consultationId: number
+  senderRole: string
+  senderId: number
+  senderName: string
+  content: string
   createdAt: string
 }
 
@@ -76,4 +87,12 @@ export const cancelConsultation = (id: number) => {
 
 export const updateConsultation = (id: number, data: Partial<ConsultationVO>) => {
   return request.put<ApiResponse<ConsultationVO>>(`/api/consultation/${id}`, data)
+}
+
+export const patientReply = (id: number, message: string) => {
+  return request.put<ApiResponse<ConsultationVO>>(`/api/consultation/${id}/patient-reply`, { message })
+}
+
+export const getMessages = (consultationId: number) => {
+  return request.get<ApiResponse<ConsultationMessageVO[]>>(`/api/consultation/${consultationId}/messages`)
 }

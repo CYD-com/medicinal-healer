@@ -29,16 +29,8 @@
       <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="showDetail(row)">查看详情</el-button>
-          <el-button
-            type="success"
-            link
-            @click="showReplyDialog(row)"
-          >
-            回复
-          </el-button>
-          <el-button type="warning" link @click="showPrescriptionDialog(row)">
-            开具处方
-          </el-button>
+          <el-button type="success" link @click="openChat(row)">回复</el-button>
+          <el-button type="warning" link @click="showPrescriptionDialog(row)">开具处方</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,11 +48,15 @@
       <div v-if="currentConsultation" class="consultation-detail">
         <div class="detail-section">
           <h4>患者信息</h4>
-          <p><strong>问诊编号：</strong>{{ currentConsultation.consulationNo }}</p>
+          <p><strong>问诊编号：</strong>{{ currentConsultation.consultationNo }}</p>
           <p><strong>主诉：</strong>{{ currentConsultation.symptom }}</p>
           <p><strong>详细描述：</strong>{{ currentConsultation.description }}</p>
           <p v-if="currentConsultation.medicalHistory"><strong>既往病史：</strong>{{ currentConsultation.medicalHistory }}</p>
           <p v-if="currentConsultation.currentMedication"><strong>当前用药：</strong>{{ currentConsultation.currentMedication }}</p>
+        </div>
+        <div class="detail-section" v-if="currentConsultation.patientMessage">
+          <h4>患者补充</h4>
+          <p>{{ currentConsultation.patientMessage }}</p>
         </div>
         <div class="detail-section" v-if="currentConsultation.doctorReply">
           <h4>医生回复</h4>
@@ -73,19 +69,79 @@
       </div>
     </el-dialog>
 
-    <el-dialog v-model="replyVisible" title="回复问诊" width="560px">
-      <el-form :model="replyForm" label-width="80px" ref="replyFormRef" :rules="replyRules">
-        <el-form-item label="医生回复" prop="doctorReply">
-          <el-input v-model="replyForm.doctorReply" type="textarea" :rows="4" placeholder="请输入诊断意见和回复" />
-        </el-form-item>
-        <el-form-item label="诊断结果" prop="diagnosis">
-          <el-input v-model="replyForm.diagnosis" type="textarea" :rows="2" placeholder="请输入诊断结果" />
-        </el-form-item>
-      </el-form>
+    <el-dialog v-model="chatVisible" :title="'问诊 - ' + chatData.patientName" width="600px" top="5vh" destroy-on-close>
+      <div class="wechat-chat">
+        <div class="chat-header-bar">
+          <span class="chat-patient-name">{{ chatData.patientName }}</span>
+          <el-tag :type="statusType(chatData.status)" size="small">{{ statusText(chatData.status) }}</el-tag>
+        </div>
+
+        <div class="chat-messages" ref="chatBoxRef">
+          <div class="chat-time">{{ formatTime(chatData.createdAt) }}</div>
+
+          <div class="message-row patient-msg">
+            <div class="msg-avatar patient-avatar">
+              <el-icon :size="20"><User /></el-icon>
+            </div>
+            <div class="msg-bubble patient-bubble">
+              <div class="msg-sender">患者</div>
+              <div class="msg-text">{{ chatData.description }}</div>
+              <div class="msg-tags" v-if="chatData.symptom">
+                <el-tag size="small" type="info">{{ chatData.symptom }}</el-tag>
+              </div>
+            </div>
+          </div>
+
+          <div v-for="msg in chatMessages" :key="msg.id" class="message-row" :class="msg.senderRole === 'doctor' ? 'doctor-msg' : 'patient-msg'">
+            <div class="msg-avatar" :class="msg.senderRole === 'doctor' ? 'doctor-avatar' : 'patient-avatar'">
+              <el-icon :size="20"><User /></el-icon>
+            </div>
+            <div class="msg-bubble" :class="msg.senderRole === 'doctor' ? 'doctor-bubble' : 'patient-bubble'">
+              <div class="msg-sender">{{ msg.senderRole === 'doctor' ? '医生' : '患者' }} · {{ msg.senderName }}</div>
+              <div class="msg-text">{{ msg.content }}</div>
+              <div class="msg-time">{{ formatTime(msg.createdAt) }}</div>
+            </div>
+          </div>
+
+          <div v-if="chatData.status === 'pending' && chatMessages.length === 0" class="system-msg">
+            <span>等待医生回复中...</span>
+          </div>
+
+          <div v-if="chatData.diagnosis" class="system-msg diagnosis-msg">
+            <div class="diagnosis-card">
+              <el-icon><Document /></el-icon>
+              <span>诊断结果：{{ chatData.diagnosis }}</span>
+            </div>
+          </div>
+
+          <div v-if="chatData.status === 'completed'" class="system-msg">
+            <span>问诊已结束</span>
+          </div>
+        </div>
+
+        <div v-if="chatData.status !== 'completed'" class="chat-input-area">
+          <el-input
+            v-model="chatInput"
+            type="textarea"
+            :rows="3"
+            placeholder="输入回复内容..."
+            @keydown.enter.ctrl="handleSendMessage"
+          />
+          <div class="input-tip">按 Ctrl + Enter 发送</div>
+        </div>
+      </div>
+
       <template #footer>
-        <el-button @click="replyVisible = false">取消</el-button>
-        <el-button type="success" @click="handleComplete" :loading="submitting">标记完成</el-button>
-        <el-button type="primary" @click="handleReply" :loading="submitting">提交回复</el-button>
+        <div class="chat-footer">
+          <el-button @click="chatVisible = false">关闭</el-button>
+          <template v-if="chatData.status === 'pending'">
+            <el-button type="primary" @click="handleAccept" :loading="chatSending">接受问诊</el-button>
+          </template>
+          <template v-else-if="chatData.status === 'in_progress'">
+            <el-button type="primary" @click="handleSendMessage" :loading="chatSending" :disabled="!chatInput.trim()">发送回复</el-button>
+            <el-button type="success" @click="handleEndConsultation">结束问诊</el-button>
+          </template>
+        </div>
       </template>
     </el-dialog>
 
@@ -141,10 +197,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Plus, Delete } from '@element-plus/icons-vue'
-import { ElMessage, type FormInstance } from 'element-plus'
+import { ref, onMounted, nextTick } from 'vue'
+import { Plus, Delete, User, FirstAidKit, Document } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { getDoctorConsultations, replyConsultation, completeConsultation } from '@/api/doctor'
+import { getMessages, type ConsultationMessageVO } from '@/api/consultation'
 import { createPrescription, type PrescriptionItemForm, type PrescriptionCreateForm } from '@/api/prescription'
 import { searchDrugs, type DrugSearchResult } from '@/api/drug'
 import Pagination from '@/components/Pagination.vue'
@@ -153,13 +210,17 @@ const consultations = ref<any[]>([])
 const loading = ref(false)
 const statusFilter = ref('')
 const detailVisible = ref(false)
-const replyVisible = ref(false)
-const submitting = ref(false)
 const currentConsultation = ref<any>(null)
-const replyFormRef = ref<FormInstance>()
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+const chatVisible = ref(false)
+const chatData = ref<any>({})
+const chatMessages = ref<ConsultationMessageVO[]>([])
+const chatInput = ref('')
+const chatSending = ref(false)
+const chatBoxRef = ref<HTMLElement | null>(null)
 
 const prescriptionVisible = ref(false)
 const prescriptionSubmitting = ref(false)
@@ -214,16 +275,6 @@ const handleDrugSelect = (index: number, drugId: string) => {
   }
 }
 
-const replyForm = ref({
-  id: 0,
-  doctorReply: '',
-  diagnosis: ''
-})
-
-const replyRules = {
-  doctorReply: [{ required: true, message: '请输入回复内容', trigger: 'blur' }]
-}
-
 const statusType = (status: string) => {
   const map: Record<string, string> = {
     pending: 'warning',
@@ -232,6 +283,34 @@ const statusType = (status: string) => {
     closed: 'info'
   }
   return map[status] || 'info'
+}
+
+const statusText = (status: string) => {
+  const map: Record<string, string> = {
+    pending: '待回复',
+    in_progress: '进行中',
+    completed: '已完成',
+    closed: '已关闭'
+  }
+  return map[status] || status
+}
+
+const formatTime = (time: string) => {
+  if (!time) return ''
+  const d = new Date(time)
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  const timeStr = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return timeStr
+  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' + timeStr
+}
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatBoxRef.value) {
+      chatBoxRef.value.scrollTop = chatBoxRef.value.scrollHeight
+    }
+  })
 }
 
 const fetchConsultations = async () => {
@@ -254,49 +333,82 @@ const showDetail = (row: any) => {
   detailVisible.value = true
 }
 
-const showReplyDialog = (row: any) => {
-  replyForm.value = { id: row.id, doctorReply: row.doctorReply || '', diagnosis: row.diagnosis || '' }
-  replyVisible.value = true
+const openChat = async (row: any) => {
+  chatData.value = { ...row }
+  chatInput.value = ''
+  chatMessages.value = []
+  chatVisible.value = true
+  await loadMessages(row.id)
+  scrollToBottom()
 }
 
-const handleReply = async () => {
-  if (!replyFormRef.value) return
-  await replyFormRef.value.validate()
-  submitting.value = true
+const loadMessages = async (consultationId: number) => {
   try {
-    await replyConsultation(replyForm.value.id, {
-      doctorReply: replyForm.value.doctorReply,
-      diagnosis: replyForm.value.diagnosis
-    })
-    ElMessage.success('回复成功')
-    replyVisible.value = false
-    fetchConsultations()
+    const res: any = await getMessages(consultationId)
+    if (res.code === 200) {
+      chatMessages.value = res.data || []
+    }
   } catch {
-    // 错误提示已由全局拦截器处理
-  } finally {
-    submitting.value = false
   }
 }
 
-const handleComplete = async () => {
-  if (!replyFormRef.value) return
-  await replyFormRef.value.validate()
-  submitting.value = true
+const handleAccept = async () => {
+  chatSending.value = true
   try {
-    if (replyForm.value.doctorReply) {
-      await replyConsultation(replyForm.value.id, {
-        doctorReply: replyForm.value.doctorReply,
-        diagnosis: replyForm.value.diagnosis
-      })
+    const res: any = await replyConsultation(chatData.value.id, { doctorReply: '已接受问诊，现在可以继续描述您的症状' })
+    if (res.code === 200) {
+      chatData.value = res.data
+      await loadMessages(chatData.value.id)
+      ElMessage.success('已接受问诊')
+      scrollToBottom()
+      fetchConsultations()
     }
-    await completeConsultation(replyForm.value.id, { diagnosis: replyForm.value.diagnosis || replyForm.value.doctorReply })
-    ElMessage.success('问诊已完成')
-    replyVisible.value = false
-    fetchConsultations()
   } catch {
-    // 错误提示已由全局拦截器处理
   } finally {
-    submitting.value = false
+    chatSending.value = false
+  }
+}
+
+const handleSendMessage = async () => {
+  if (!chatInput.value.trim()) return
+  chatSending.value = true
+  try {
+    const res: any = await replyConsultation(chatData.value.id, {
+      doctorReply: chatInput.value.trim(),
+      diagnosis: chatData.value.diagnosis || undefined
+    })
+    if (res.code === 200) {
+      chatData.value = res.data
+      chatInput.value = ''
+      await loadMessages(chatData.value.id)
+      scrollToBottom()
+      fetchConsultations()
+    }
+  } catch {
+  } finally {
+    chatSending.value = false
+  }
+}
+
+const handleEndConsultation = async () => {
+  try {
+    const { value } = await ElMessageBox.prompt('请输入诊断结果', '结束问诊', {
+      confirmButtonText: '确定结束',
+      cancelButtonText: '取消',
+      inputPlaceholder: '请输入诊断结果',
+      inputType: 'textarea'
+    })
+    chatSending.value = true
+    const res: any = await completeConsultation(chatData.value.id, { diagnosis: value || '' })
+    if (res.code === 200) {
+      chatData.value = res.data
+      ElMessage.success('问诊已结束')
+      scrollToBottom()
+      fetchConsultations()
+    }
+  } catch {
+  } finally {
+    chatSending.value = false
   }
 }
 
@@ -335,7 +447,6 @@ const handlePrescriptionSubmit = async () => {
     ElMessage.success('处方开具成功')
     prescriptionVisible.value = false
   } catch {
-    // 错误提示已由全局拦截器处理
   } finally {
     prescriptionSubmitting.value = false
   }
@@ -379,6 +490,185 @@ onMounted(fetchConsultations)
   font-size: 14px;
 }
 
+.wechat-chat {
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+  background: #ededed;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.chat-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.chat-patient-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-time {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  padding: 4px 0;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.patient-msg {
+  align-self: flex-start;
+  flex-direction: row;
+}
+
+.doctor-msg {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.msg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.patient-avatar {
+  background: #5b9bd5;
+  color: #fff;
+}
+
+.doctor-avatar {
+  background: #07c160;
+  color: #fff;
+}
+
+.msg-bubble {
+  padding: 8px 12px;
+  border-radius: 6px;
+  position: relative;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.patient-bubble {
+  background: #fff;
+  color: #333;
+  border-top-left-radius: 2px;
+}
+
+.patient-bubble::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 10px;
+  border: 6px solid transparent;
+  border-right-color: #fff;
+  border-left: none;
+}
+
+.doctor-bubble {
+  background: #95ec69;
+  color: #333;
+  border-top-right-radius: 2px;
+}
+
+.doctor-bubble::before {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 10px;
+  border: 6px solid transparent;
+  border-left-color: #95ec69;
+  border-right: none;
+}
+
+.msg-sender {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.doctor-bubble .msg-sender {
+  color: #6a8e3b;
+}
+
+.msg-text {
+  font-size: 14px;
+}
+
+.msg-tags {
+  margin-top: 4px;
+}
+
+.msg-time {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+.system-msg {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  padding: 4px 0;
+}
+
+.diagnosis-msg .diagnosis-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #d48806;
+}
+
+.chat-input-area {
+  padding: 10px 12px;
+  background: #f5f5f5;
+  border-top: 1px solid #e6e6e6;
+}
+
+.input-tip {
+  font-size: 11px;
+  color: #bbb;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.chat-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .drug-list {
   width: 100%;
 }
@@ -390,5 +680,4 @@ onMounted(fetchConsultations)
   align-items: center;
   flex-wrap: wrap;
 }
-
 </style>
