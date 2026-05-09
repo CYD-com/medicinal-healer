@@ -13,11 +13,16 @@ import com.example.usergenerator.dto.user.UserUpdateRoleDTO;
 import com.example.usergenerator.dto.user.AvatarUpdateDTO;
 import com.example.usergenerator.dto.user.ChangePasswordDTO;
 import com.example.usergenerator.dto.user.UpdateProfileDTO;
+import com.example.usergenerator.entity.Doctor;
+import com.example.usergenerator.entity.SysUser;
+import com.example.usergenerator.mapper.DoctorMapper;
+import com.example.usergenerator.mapper.SysUserMapper;
 import com.example.usergenerator.service.SysUserService;
 import com.example.usergenerator.util.TokenBlacklistUtil;
 import com.example.usergenerator.vo.user.UserGenerateVO;
 import com.example.usergenerator.vo.user.UserLoginVO;
 import com.example.usergenerator.vo.user.UserVO;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +48,8 @@ public class UserController {
 
     private final SysUserService sysUserService;
     private final TokenBlacklistUtil tokenBlacklistUtil;
+    private final DoctorMapper doctorMapper;
+    private final SysUserMapper sysUserMapper;
 
     @PostMapping("/generate")
     public Result<UserGenerateVO> generateUser() {
@@ -86,8 +93,9 @@ public class UserController {
     public Result<IPage<UserVO>> getUserList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword) {
-        IPage<UserVO> userList = sysUserService.listUsersByPage(page, size, keyword);
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role) {
+        IPage<UserVO> userList = sysUserService.listUsersByPage(page, size, keyword, role);
         return Result.success("查询成功", userList);
     }
 
@@ -101,6 +109,15 @@ public class UserController {
     @DeleteMapping("/delete/{id}")
     @RequirePermission(RoleConstants.ADMIN)
     public Result<Void> deleteUser(@PathVariable @NotNull(message = "用户ID不能为空") Long id) {
+        SysUser user = sysUserMapper.selectById(id);
+        if (user == null) {
+            return Result.error(404, "用户不存在");
+        }
+        LambdaQueryWrapper<Doctor> docWrapper = new LambdaQueryWrapper<>();
+        docWrapper.eq(Doctor::getUserId, id);
+        if (doctorMapper.selectCount(docWrapper) > 0) {
+            return Result.error(400, "该用户已绑定医生档案，请先在医生管理中解除绑定后再删除");
+        }
         sysUserService.deleteUser(id);
         return Result.success("删除成功");
     }

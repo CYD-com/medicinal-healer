@@ -35,7 +35,7 @@ public interface SysUserService extends IService<SysUser> {
 
     List<UserVO> listAllUsers();
 
-    IPage<UserVO> listUsersByPage(int page, int size, String keyword);
+    IPage<UserVO> listUsersByPage(int page, int size, String keyword, String role);
 
     void deleteUser(Long id);
 

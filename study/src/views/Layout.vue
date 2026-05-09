@@ -12,26 +12,20 @@
           <router-link to="/admin/departments" class="sidebar-item" active-class="active">
             科室管理
           </router-link>
-          <router-link to="/admin/doctors" class="sidebar-item" active-class="active">
+          <!-- <router-link to="/admin/doctors" class="sidebar-item" active-class="active">
             医生管理
-          </router-link>
+          </router-link> -->
           <router-link to="/users" class="sidebar-item" active-class="active">
             用户管理
           </router-link>
           <router-link to="/drugs" class="sidebar-item" active-class="active">
             药品管理
           </router-link>
-          <router-link to="/appointments" class="sidebar-item" active-class="active">
-            预约管理
-          </router-link>
-          <router-link to="/consultations" class="sidebar-item" active-class="active">
-            问诊管理
-          </router-link>
-          <router-link to="/prescriptions" class="sidebar-item" active-class="active">
-            处方管理
-          </router-link>
           <router-link to="/healthRecords" class="sidebar-item" active-class="active">
             健康档案
+          </router-link>
+          <router-link to="/my" class="sidebar-item" active-class="active">
+            个人中心
           </router-link>
         </template>
         <template v-else-if="isDoctor">
@@ -54,6 +48,9 @@
           </router-link>
           <router-link to="/appointments" class="sidebar-item" active-class="active">
             预约挂号
+          </router-link>
+          <router-link to="/ai-chat" class="sidebar-item" active-class="active">
+            AI问诊
           </router-link>
           <router-link to="/consultations" class="sidebar-item" active-class="active">
             在线问诊

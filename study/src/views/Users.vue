@@ -4,6 +4,11 @@
     <div class="users-card">
       <div class="toolbar">
         <el-input v-model="searchKeyword" placeholder="搜索用户名/姓名/手机号" prefix-icon="el-icon-search" style="width: 300px; margin-right: 16px" clearable @keyup.enter="loadUserList" @clear="loadUserList" />
+        <el-select v-model="filterRole" placeholder="全部角色" clearable style="width: 140px; margin-right: 16px" @change="loadUserList">
+          <el-option label="管理员" value="admin" />
+          <el-option label="医生" value="doctor" />
+          <el-option label="用户" value="user" />
+        </el-select>
         <el-button type="primary" @click="loadUserList">搜索</el-button>
         <el-button type="success" @click="showAddDialog">添加用户</el-button>
       </div>
@@ -162,6 +167,7 @@ const dialogVisible = ref(false)
 const dialogTitle = ref('添加用户')
 const isEdit = ref(false)
 const searchKeyword = ref('')
+const filterRole = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -184,7 +190,7 @@ const userForm = ref({
 const loadUserList = async () => {
   loading.value = true
   try {
-    const res: any = await getUserList({ page: currentPage.value, size: pageSize.value, keyword: searchKeyword.value })
+    const res: any = await getUserList({ page: currentPage.value, size: pageSize.value, keyword: searchKeyword.value, role: filterRole.value || undefined })
     if (res.code === 200) {
       userList.value = res.data?.records || res.data || []
       total.value = res.data?.total || 0
@@ -281,9 +287,10 @@ const deleteUser = async (user: UserItem) => {
     await deleteUserApi(String(user.id))
     ElMessage.success('删除成功')
     loadUserList()
-  } catch (error) {
+  } catch (error: any) {
     if (error === 'cancel') return
-    // 错误提示已由全局拦截器处理
+    const msg = error?.response?.data?.message || error?.message || '删除失败'
+    ElMessage.error(msg)
   }
 }
 
@@ -307,9 +314,10 @@ const toggleStatus = async (user: UserItem) => {
     await updateUser(String(user.id), { status: newStatus })
     ElMessage.success(`${actionText}成功`)
     loadUserList()
-  } catch (error) {
+  } catch (error: any) {
     if (error === 'cancel') return
-    // 错误提示已由全局拦截器处理
+    const msg = error?.response?.data?.message || error?.message || '操作失败'
+    ElMessage.error(msg)
   }
 }
 

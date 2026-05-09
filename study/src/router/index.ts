@@ -17,6 +17,7 @@ import AdminDoctors from '@/views/AdminDoctors.vue'
 import DoctorSchedule from '@/views/DoctorSchedule.vue'
 import DoctorConsultations from '@/views/DoctorConsultations.vue'
 import DoctorPrescriptions from '@/views/DoctorPrescriptions.vue'
+import AIChat from '@/views/AIChat.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -114,6 +115,12 @@ const routes: RouteRecordRaw[] = [
         name: 'doctorPrescriptions',
         component: DoctorPrescriptions,
         meta: { title: '开具处方', roles: ['doctor'] }
+      },
+      {
+        path: '/ai-chat',
+        name: 'aiChat',
+        component: AIChat,
+        meta: { title: 'AI问诊', roles: ['user'] }
       }
     ]
   },

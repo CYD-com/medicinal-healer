@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function getUserList(params?: { page?: number; size?: number; keyword?: string }) {
+export function getUserList(params?: { page?: number; size?: number; keyword?: string; role?: string }) {
   return request({
     url: '/api/user/list',
     method: 'get',

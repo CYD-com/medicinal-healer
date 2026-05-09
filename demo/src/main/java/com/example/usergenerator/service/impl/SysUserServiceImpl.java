@@ -211,7 +211,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public IPage<UserVO> listUsersByPage(int page, int size, String keyword) {
+    public IPage<UserVO> listUsersByPage(int page, int size, String keyword, String role) {
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         if (keyword != null && !keyword.trim().isEmpty()) {
             wrapper.and(w -> w
@@ -219,6 +219,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .or().like(SysUser::getRealName, keyword)
                 .or().like(SysUser::getPhone, keyword)
             );
+        }
+        if (role != null && !role.trim().isEmpty()) {
+            wrapper.eq(SysUser::getRole, role);
         }
         wrapper.orderByDesc(SysUser::getCreateTime);
         IPage<SysUser> pageResult = this.page(new Page<>(page, size), wrapper);

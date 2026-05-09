@@ -191,8 +191,9 @@ const handleDelete = async (id: number) => {
     await deleteDoctor(id)
     ElMessage.success('删除成功')
     fetchDoctors()
-  } catch {
-    // 错误提示已由全局拦截器处理
+  } catch (error: any) {
+    const msg = error?.response?.data?.message || error?.message || '删除失败'
+    ElMessage.error(msg)
   }
 }
 
