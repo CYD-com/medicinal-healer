@@ -82,7 +82,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+        Map<Long, Doctor> doctorMap = doctorMapper.selectDoctorsWithUserByIds(doctorIds).stream()
                 .collect(Collectors.toMap(Doctor::getId, d -> d));
 
         return consultations.stream()
@@ -109,7 +109,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+        Map<Long, Doctor> doctorMap = doctorMapper.selectDoctorsWithUserByIds(doctorIds).stream()
                 .collect(Collectors.toMap(Doctor::getId, d -> d));
 
         return consultationPage.convert(c -> convertToVO(c, doctorMap.get(c.getDoctorId())));
@@ -133,7 +133,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+        Map<Long, Doctor> doctorMap = doctorMapper.selectDoctorsWithUserByIds(doctorIds).stream()
                 .collect(Collectors.toMap(Doctor::getId, d -> d));
 
         return consultationPage.convert(c -> convertToVO(c, doctorMap.get(c.getDoctorId())));
@@ -239,7 +239,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
     }
 
     private ConsultationVO convertToVO(Consultation consultation) {
-        Doctor doctor = doctorMapper.selectById(consultation.getDoctorId());
+        Doctor doctor = doctorMapper.selectDoctorWithUserById(consultation.getDoctorId());
         return convertToVO(consultation, doctor);
     }
 

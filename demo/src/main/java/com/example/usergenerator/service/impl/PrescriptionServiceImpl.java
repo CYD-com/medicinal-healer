@@ -128,7 +128,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+        Map<Long, Doctor> doctorMap = doctorMapper.selectDoctorsWithUserByIds(doctorIds).stream()
                 .collect(Collectors.toMap(Doctor::getId, d -> d));
 
         List<Long> prescriptionIds = prescriptions.stream()
@@ -199,7 +199,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
             throw new BusinessException(ResultCode.PRESCRIPTION_NOT_FOUND);
         }
 
-        Doctor doctor = doctorMapper.selectById(prescription.getDoctorId());
+        Doctor doctor = doctorMapper.selectDoctorWithUserById(prescription.getDoctorId());
 
         LambdaQueryWrapper<PrescriptionItem> itemWrapper = new LambdaQueryWrapper<>();
         itemWrapper.eq(PrescriptionItem::getPrescriptionId, id);
@@ -232,7 +232,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Long, Doctor> doctorMap = doctorMapper.selectBatchIds(doctorIds).stream()
+        Map<Long, Doctor> doctorMap = doctorMapper.selectDoctorsWithUserByIds(doctorIds).stream()
                 .collect(Collectors.toMap(Doctor::getId, d -> d));
 
         List<Long> prescriptionIds = prescriptions.stream()
@@ -267,7 +267,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
         wrapper.orderByDesc(Prescription::getCreatedAt);
         IPage<Prescription> prescriptionPage = baseMapper.selectPage(page, wrapper);
         return prescriptionPage.convert(p -> {
-            Doctor doctor = doctorMapper.selectById(p.getDoctorId());
+            Doctor doctor = doctorMapper.selectDoctorWithUserById(p.getDoctorId());
             LambdaQueryWrapper<PrescriptionItem> iw = new LambdaQueryWrapper<>();
             iw.eq(PrescriptionItem::getPrescriptionId, p.getId());
             return convertToVO(p, doctor, prescriptionItemMapper.selectList(iw));
@@ -323,7 +323,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
         wrapper.orderByDesc(Prescription::getCreatedAt);
         IPage<Prescription> prescriptionPage = baseMapper.selectPage(page, wrapper);
         return prescriptionPage.convert(p -> {
-            Doctor doctor = doctorMapper.selectById(p.getDoctorId());
+            Doctor doctor = doctorMapper.selectDoctorWithUserById(p.getDoctorId());
             LambdaQueryWrapper<PrescriptionItem> iw = new LambdaQueryWrapper<>();
             iw.eq(PrescriptionItem::getPrescriptionId, p.getId());
             return convertToVO(p, doctor, prescriptionItemMapper.selectList(iw));
@@ -331,7 +331,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
     }
 
     private PrescriptionVO convertToVO(Prescription prescription) {
-        Doctor doctor = doctorMapper.selectById(prescription.getDoctorId());
+        Doctor doctor = doctorMapper.selectDoctorWithUserById(prescription.getDoctorId());
 
         LambdaQueryWrapper<PrescriptionItem> itemWrapper = new LambdaQueryWrapper<>();
         itemWrapper.eq(PrescriptionItem::getPrescriptionId, prescription.getId());

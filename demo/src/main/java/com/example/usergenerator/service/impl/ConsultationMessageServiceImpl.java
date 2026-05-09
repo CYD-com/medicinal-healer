@@ -55,14 +55,14 @@ public class ConsultationMessageServiceImpl implements ConsultationMessageServic
         vo.setContent(message.getContent());
         vo.setCreatedAt(message.getCreatedAt());
 
-        String senderName = resolveSenderName(message.getSenderId(), message.getSenderRole());
+        String senderName = resolveSenderName(message.getSenderRole(), message.getSenderId());
         vo.setSenderName(senderName);
         return vo;
     }
 
-    private String resolveSenderName(Long senderId, String role) {
-        if ("doctor".equals(role)) {
-            Doctor doctor = doctorMapper.selectById(senderId);
+    private String resolveSenderName(String senderRole, Long senderId) {
+        if ("doctor".equals(senderRole)) {
+            Doctor doctor = doctorMapper.selectDoctorWithUserById(senderId);
             return doctor != null ? doctor.getName() : "医生";
         } else {
             SysUser user = sysUserMapper.selectById(senderId);

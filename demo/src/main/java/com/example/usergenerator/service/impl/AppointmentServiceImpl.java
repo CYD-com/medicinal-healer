@@ -96,7 +96,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AppointmentVO createAppointment(AppointmentCreateDTO dto, Long userId) {
-        Doctor doctor = doctorMapper.selectById(dto.getDoctorId());
+        Doctor doctor = doctorMapper.selectDoctorWithUserById(dto.getDoctorId());
         if (doctor == null) {
             throw new BusinessException("医生不存在");
         }
@@ -316,7 +316,7 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
     }
 
     private AppointmentVO convertToAppointmentVO(Appointment appointment) {
-        Doctor doctor = doctorMapper.selectById(appointment.getDoctorId());
+        Doctor doctor = doctorMapper.selectDoctorWithUserById(appointment.getDoctorId());
         Department department = departmentMapper.selectById(appointment.getDepartmentId());
 
         TimeSlotVO timeSlot = TimeSlotVO.builder()

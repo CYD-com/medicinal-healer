@@ -12,20 +12,86 @@
         <result column="department_id" property="departmentId"/>
         <result column="user_id" property="userId"/>
     </resultMap>
-    <sql id="Base_Column_List">doctor_id, name, title, avatar, rating, consultation_count, specialty, department_id, user_id</sql>
+
+    <sql id="Base_Column_List">d.doctor_id, d.title, d.rating, d.consultation_count, d.specialty, d.department_id, d.user_id</sql>
+
+    <sql id="User_Column_List">u.real_name AS name, u.avatar AS avatar</sql>
+
+    <sql id="Doctor_With_User_Join">t_doctor d LEFT JOIN sys_user u ON d.user_id = u.id</sql>
+
     <select id="selectAllDoctors" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/> FROM t_doctor ORDER BY doctor_id ASC
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        ORDER BY d.doctor_id ASC
     </select>
+
     <select id="selectDoctorsByDepartmentId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/> FROM t_doctor WHERE department_id = #{departmentId} ORDER BY doctor_id ASC
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        WHERE d.department_id = #{departmentId}
+        ORDER BY d.doctor_id ASC
     </select>
+
     <select id="selectDoctorsByDepartmentName" resultMap="BaseResultMap">
-        SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE dept.name = #{departmentName} ORDER BY d.doctor_id ASC
+        SELECT d.doctor_id, d.title, d.rating, d.consultation_count, d.specialty, d.department_id, d.user_id,
+               u.real_name AS name, u.avatar AS avatar
+        FROM t_doctor d
+        LEFT JOIN sys_user u ON d.user_id = u.id
+        LEFT JOIN t_department dept ON d.department_id = dept.id
+        WHERE dept.name = #{departmentName}
+        ORDER BY d.doctor_id ASC
     </select>
+
     <select id="selectDoctorWithDepartment" resultMap="BaseResultMap">
-        SELECT d.* FROM t_doctor d LEFT JOIN t_department dept ON d.department_id = dept.id WHERE d.doctor_id = #{doctorId}
+        SELECT d.doctor_id, d.title, d.rating, d.consultation_count, d.specialty, d.department_id, d.user_id,
+               u.real_name AS name, u.avatar AS avatar
+        FROM t_doctor d
+        LEFT JOIN sys_user u ON d.user_id = u.id
+        LEFT JOIN t_department dept ON d.department_id = dept.id
+        WHERE d.doctor_id = #{doctorId}
     </select>
+
     <select id="selectByUserId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/> FROM t_doctor WHERE user_id = #{userId} LIMIT 1
+        SELECT d.doctor_id, d.title, d.rating, d.consultation_count, d.specialty, d.department_id, d.user_id,
+               u.real_name AS name, u.avatar AS avatar
+        FROM t_doctor d
+        LEFT JOIN sys_user u ON d.user_id = u.id
+        WHERE d.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <select id="selectDoctorWithUserById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        WHERE d.doctor_id = #{doctorId}
+    </select>
+
+    <select id="selectDoctorsWithUserByIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        WHERE d.doctor_id IN
+        <foreach collection="doctorIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectAllDoctorsWithUser" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        ORDER BY d.doctor_id ASC
+    </select>
+
+    <select id="selectDoctorsByDepartmentIdWithUser" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        WHERE d.department_id = #{departmentId}
+        ORDER BY d.doctor_id ASC
+    </select>
+
+    <select id="selectByUserIdWithUser" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>, <include refid="User_Column_List"/>
+        FROM <include refid="Doctor_With_User_Join"/>
+        WHERE d.user_id = #{userId}
+        LIMIT 1
     </select>
 </mapper>

@@ -41,7 +41,10 @@ INSERT INTO `sys_user` (`username`, `password`, `real_name`, `gender`, `age`, `p
 ('doctor_zs','$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '张三',       '男', 45, '13800000002', 'zhangsan@community.com', '110101197901010002', '北京市朝阳区阳光社区',           'doctor', 1, NOW()),
 ('doctor_ls','$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '李四',       '女', 38, '13800000003', 'lisi@community.com',     '110101198601010003', '北京市海淀区中关村社区',         'doctor', 1, NOW()),
 ('user_w5',  '$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '王五',       '男', 28, '13800000004', 'wangwu@community.com',   '110101199601010004', '北京市西城区新街口社区',         'user',   1, NOW()),
-('user_zl',  '$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '赵六',       '女', 55, '13800000005', 'zhaoliu@community.com',  '110101196901010005', '北京市丰台区方庄社区',           'user',   1, NOW());
+('user_zl',  '$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '赵六',       '女', 55, '13800000005', 'zhaoliu@community.com',  '110101196901010005', '北京市丰台区方庄社区',           'user',   1, NOW()),
+('doctor_wf', '$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '王芳', '女', 38, '13800000006', 'wangfang@hospital.com', '110101198601010006', '北京市海淀区中关村社区', 'doctor', 1, NOW()),
+('doctor_cq', '$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '陈强', '男', 50, '13800000007', 'chenqiang@hospital.com', '110101197401010007', '北京市朝阳区望京社区', 'doctor', 1, NOW()),
+('doctor_lm', '$2b$10$uRAS68xyAueDj1s/o0UZjO.k4JOW1.QWWwajImr/d1RiFx2z9l47y', '刘梅', '女', 45, '13800000008', 'liumei@hospital.com', '110101197901010008', '北京市东城区东直门社区', 'doctor', 1, NOW());
 
 -- ============================================
 -- 2. t_department 科室表（无外键依赖）
@@ -128,9 +131,7 @@ INSERT INTO `drugs` (`drug_id`, `drug_name`, `generic_name`, `specification`, `m
 DROP TABLE IF EXISTS `t_doctor`;
 CREATE TABLE `t_doctor` (
     `doctor_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '医生ID',
-    `name` VARCHAR(50) NOT NULL COMMENT '姓名',
     `title` VARCHAR(50) DEFAULT NULL COMMENT '职称',
-    `avatar` VARCHAR(500) DEFAULT NULL COMMENT '头像',
     `rating` DECIMAL(2,1) DEFAULT 5.0 COMMENT '评分',
     `consultation_count` INT DEFAULT 0 COMMENT '问诊次数',
     `specialty` VARCHAR(500) DEFAULT NULL COMMENT '擅长方向',
@@ -144,12 +145,12 @@ CREATE TABLE `t_doctor` (
     CONSTRAINT `fk_doctor_department` FOREIGN KEY (`department_id`) REFERENCES `t_department`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生表';
 
-INSERT INTO `t_doctor` (`name`, `title`, `rating`, `consultation_count`, `specialty`, `department_id`, `user_id`, `create_time`) VALUES
-('张三', '主任医师',   4.9, 1286, '心血管疾病、高血压、冠心病',       2, 2, NOW()),
-('李四', '副主任医师', 4.8, 956,  '呼吸系统疾病、慢性支气管炎、哮喘', 2, 3, NOW()),
-('王芳', '主治医师',   4.7, 623,  '常见病、多发病、慢性病管理',       1, NULL, NOW()),
-('陈强', '主任医师',   4.9, 1102, '骨科疾病、关节炎、腰椎间盘突出',   3, NULL, NOW()),
-('刘梅', '副主任医师', 4.8, 845,  '中医内科、针灸推拿、亚健康调理',   5, NULL, NOW());
+INSERT INTO `t_doctor` (`title`, `rating`, `consultation_count`, `specialty`, `department_id`, `user_id`, `create_time`) VALUES
+('主任医师',   4.9, 1286, '心血管疾病、高血压、冠心病',       2, 2, NOW()),
+('副主任医师', 4.8, 956,  '呼吸系统疾病、慢性支气管炎、哮喘', 2, 3, NOW()),
+('主治医师',   4.7, 623,  '常见病、多发病、慢性病管理',       1, 7, NOW()),
+('主任医师',   4.9, 1102, '骨科疾病、关节炎、腰椎间盘突出',   3, 8, NOW()),
+('副主任医师', 4.8, 845,  '中医内科、针灸推拿、亚健康调理',   5, 9, NOW());
 
 -- ============================================
 -- 6. t_appointment 预约挂号表（依赖 sys_user, t_doctor, t_department）
@@ -180,11 +181,13 @@ CREATE TABLE `t_appointment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预约挂号表';
 
 INSERT INTO `t_appointment` (`user_id`, `doctor_id`, `department_id`, `appointment_date`, `start_time`, `end_time`, `status`, `patient_name`, `patient_phone`, `symptoms`, `create_time`) VALUES
-(4, 1, 2, '2026-05-05', '09:00:00', '09:30:00', 'confirmed',  '王五', '13800000004', '头晕、胸闷，持续三天，伴有轻微心悸',         NOW()),
-(5, 2, 2, '2026-05-05', '09:30:00', '10:00:00', 'pending',    '赵六', '13800000005', '咳嗽、咳痰一周，夜间加重，无发热',           NOW()),
-(4, 3, 1, '2026-05-06', '10:00:00', '10:30:00', 'pending',    '王五', '13800000004', '近两周感觉乏力、食欲不振，偶有低热',         NOW()),
-(5, 1, 2, '2026-05-04', '14:00:00', '14:30:00', 'completed',  '赵六', '13800000005', '高血压复查，近期血压波动较大，伴有头痛',     NOW()),
-(4, 5, 5, '2026-05-07', '08:30:00', '09:00:00', 'pending',    '王五', '13800000004', '失眠多梦两周，工作压力大，腰膝酸软',         NOW());
+(4, 1, 2, DATE_ADD(CURDATE(), INTERVAL 0 DAY),  '09:00', '09:30', 'confirmed',  '王五', '13800000004', '头晕、胸闷，持续三天，伴有轻微心悸',         NOW()),
+(5, 2, 2, DATE_ADD(CURDATE(), INTERVAL 0 DAY),  '09:30', '10:00', 'pending',    '赵六', '13800000005', '咳嗽、咳痰一周，夜间加重，无发热',           NOW()),
+(4, 3, 1, DATE_ADD(CURDATE(), INTERVAL 0 DAY),  '10:00', '10:30', 'pending',    '王五', '13800000004', '近两周感觉乏力、食欲不振，偶有低热',         NOW()),
+(5, 1, 2, DATE_ADD(CURDATE(), INTERVAL -1 DAY), '14:00', '14:30', 'completed',  '赵六', '13800000005', '高血压复查，近期血压波动较大，伴有头痛',     NOW()),
+(4, 5, 5, DATE_ADD(CURDATE(), INTERVAL 1 DAY),  '08:30', '09:00', 'pending',    '王五', '13800000004', '失眠多梦两周，工作压力大，腰膝酸软',         NOW()),
+(5, 1, 2, DATE_ADD(CURDATE(), INTERVAL 1 DAY),  '10:00', '10:30', 'pending',    '赵六', '13800000005', '反复感冒两周，鼻塞流涕，咽痛',               NOW()),
+(4, 4, 3, DATE_ADD(CURDATE(), INTERVAL 1 DAY),  '08:30', '09:00', 'pending',    '王五', '13800000004', '腰痛一周，弯腰时加重，活动受限',             NOW());
 
 -- ============================================
 -- 7. consultation 在线问诊表（依赖 sys_user, t_doctor）

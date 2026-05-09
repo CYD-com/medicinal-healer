@@ -21,6 +21,6 @@ public interface DoctorScheduleMapper extends BaseMapper<DoctorSchedule> {
     @Select("SELECT * FROM doctor_schedule WHERE department_id = #{departmentId} AND work_date = #{workDate} AND status = 1 ORDER BY start_time")
     List<DoctorSchedule> findByDepartmentAndDate(@Param("departmentId") Long departmentId, @Param("workDate") LocalDate workDate);
 
-    @Select("SELECT ds.*, d.real_name as doctor_name FROM doctor_schedule ds LEFT JOIN sys_user d ON ds.doctor_id = d.id WHERE ds.work_date = #{workDate} AND ds.status = 1 ORDER BY ds.start_time")
+    @Select("SELECT ds.*, u.real_name as doctor_name FROM doctor_schedule ds LEFT JOIN t_doctor d ON ds.doctor_id = d.doctor_id LEFT JOIN sys_user u ON d.user_id = u.id WHERE ds.work_date = #{workDate} AND ds.status = 1 ORDER BY ds.start_time")
     List<DoctorSchedule> findSchedulesByDate(@Param("workDate") LocalDate workDate);
 }

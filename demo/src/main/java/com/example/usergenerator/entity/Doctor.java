@@ -15,13 +15,13 @@ public class Doctor implements Serializable {
     @TableId(value = "doctor_id", type = IdType.AUTO)
     private Long id;
 
-    @TableField("name")
+    @TableField(exist = false)
     private String name;
 
     @TableField("title")
     private String title;
 
-    @TableField("avatar")
+    @TableField(exist = false)
     private String avatar;
 
     @TableField("rating")
