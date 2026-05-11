@@ -22,6 +22,18 @@ import java.util.stream.Collectors;
 @Service
 public class HealthRecordServiceImpl implements HealthRecordService {
 
+    private static final java.util.Map<String, String> INDICATOR_TYPE_MAP = java.util.Map.of(
+            "bloodPressure", "blood_pressure",
+            "bloodSugar", "blood_sugar",
+            "heartRate", "heart_rate",
+            "weight", "weight",
+            "height", "height"
+    );
+
+    private String toDbIndicatorType(String type) {
+        return INDICATOR_TYPE_MAP.getOrDefault(type, type);
+    }
+
     @Autowired
     private HealthRecordMapper healthRecordMapper;
 
@@ -181,6 +193,19 @@ public class HealthRecordServiceImpl implements HealthRecordService {
             }
         }
 
+        if (dto.getFamilyDiseases() != null) {
+            familyDiseaseMapper.deleteByMap(java.util.Map.of("user_id", userId));
+            for (MedicalHistoryUpdateDTO.FamilyDiseaseDTO item : dto.getFamilyDiseases()) {
+                FamilyDisease familyDisease = new FamilyDisease();
+                familyDisease.setUserId(userId);
+                familyDisease.setDiseaseName(item.getDiseaseName());
+                familyDisease.setRelation(item.getRelation());
+                familyDisease.setRemark(item.getRemark());
+                familyDisease.setCreatedAt(LocalDateTime.now());
+                familyDiseaseMapper.insert(familyDisease);
+            }
+        }
+
         if (dto.getAllergies() != null) {
             allergyMapper.deleteByMap(java.util.Map.of("user_id", userId));
             for (MedicalHistoryUpdateDTO.AllergyDTO item : dto.getAllergies()) {
@@ -191,6 +216,20 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 allergy.setSeverity(item.getSeverity());
                 allergy.setCreatedAt(LocalDateTime.now());
                 allergyMapper.insert(allergy);
+            }
+        }
+
+        if (dto.getSurgicalHistory() != null) {
+            surgicalHistoryMapper.deleteByMap(java.util.Map.of("user_id", userId));
+            for (MedicalHistoryUpdateDTO.SurgicalHistoryDTO item : dto.getSurgicalHistory()) {
+                SurgicalHistory history = new SurgicalHistory();
+                history.setUserId(userId);
+                history.setSurgeryName(item.getSurgeryName());
+                history.setSurgeryDate(item.getSurgeryDate());
+                history.setHospital(item.getHospital());
+                history.setRecovery(item.getRecovery());
+                history.setCreatedAt(LocalDateTime.now());
+                surgicalHistoryMapper.insert(history);
             }
         }
     }
@@ -272,7 +311,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     @Override
     public HealthIndicatorVO getIndicators(Long userId, String type, String startDate, String endDate) {
-        List<HealthIndicator> indicators = healthIndicatorMapper.selectByUserIdAndType(userId, type);
+        String dbType = toDbIndicatorType(type);
+        List<HealthIndicator> indicators = healthIndicatorMapper.selectByUserIdAndType(userId, dbType);
 
         HealthIndicatorVO vo = new HealthIndicatorVO();
         vo.setIndicatorType(type);
@@ -350,7 +390,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     public void addIndicator(Long userId, IndicatorCreateDTO dto) {
         HealthIndicator indicator = new HealthIndicator();
         indicator.setUserId(userId);
-        indicator.setIndicatorType(dto.getIndicatorType());
+        indicator.setIndicatorType(toDbIndicatorType(dto.getIndicatorType()));
         indicator.setSystolic(dto.getSystolic());
         indicator.setDiastolic(dto.getDiastolic());
         indicator.setHeartRate(dto.getHeartRate());

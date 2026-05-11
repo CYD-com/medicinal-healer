@@ -35,6 +35,8 @@ public class ConsultationVO {
 
     private String statusText;
 
+    private String patientName;
+
     private LocalDateTime createdAt;
 
     @Data

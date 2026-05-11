@@ -11,11 +11,13 @@ import com.example.usergenerator.entity.Department;
 import com.example.usergenerator.entity.Doctor;
 import com.example.usergenerator.entity.Prescription;
 import com.example.usergenerator.entity.PrescriptionItem;
+import com.example.usergenerator.entity.SysUser;
 import com.example.usergenerator.exception.BusinessException;
 import com.example.usergenerator.mapper.DepartmentMapper;
 import com.example.usergenerator.mapper.DoctorMapper;
 import com.example.usergenerator.mapper.PrescriptionItemMapper;
 import com.example.usergenerator.mapper.PrescriptionMapper;
+import com.example.usergenerator.mapper.SysUserMapper;
 import com.example.usergenerator.service.PrescriptionService;
 import com.example.usergenerator.vo.prescription.PrescriptionItemVO;
 import com.example.usergenerator.vo.prescription.PrescriptionVO;
@@ -42,11 +44,19 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
     private final PrescriptionItemMapper prescriptionItemMapper;
     private final DoctorMapper doctorMapper;
     private final DepartmentMapper departmentMapper;
+    private final SysUserMapper sysUserMapper;
+
+    private static final Map<String, List<String>> STATUS_TRANSITIONS = Map.of(
+            "pending", List.of("approved", "rejected"),
+            "approved", List.of("valid", "expired"),
+            "valid", List.of("completed", "expired")
+    );
 
     private static final Map<String, String> STATUS_MAP = Map.of(
             "pending", "待审核",
-            "approved", "已审核",
+            "approved", "已通过",
             "rejected", "已拒绝",
+            "valid", "有效",
             "completed", "已完成",
             "expired", "已过期"
     );
@@ -353,6 +363,11 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
         vo.setValidUntil(prescription.getValidUntil());
         vo.setCreatedAt(prescription.getCreatedAt());
 
+        if (prescription.getUserId() != null) {
+            SysUser patient = sysUserMapper.selectById(prescription.getUserId());
+            vo.setPatientName(patient != null ? patient.getRealName() : null);
+        }
+
         if (doctor != null) {
             PrescriptionVO.DoctorInfo doctorInfo = new PrescriptionVO.DoctorInfo();
             doctorInfo.setId(doctor.getId());
@@ -398,6 +413,14 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
         Prescription prescription = baseMapper.selectById(id);
         if (prescription == null) {
             throw new BusinessException(ResultCode.PRESCRIPTION_NOT_FOUND);
+        }
+
+        List<String> allowedTargets = STATUS_TRANSITIONS.get(prescription.getStatus());
+        if (allowedTargets == null) {
+            throw new BusinessException(ResultCode.BAD_REQUEST, "当前状态「" + STATUS_MAP.getOrDefault(prescription.getStatus(), prescription.getStatus()) + "」不可变更");
+        }
+        if (!allowedTargets.contains(status)) {
+            throw new BusinessException(ResultCode.BAD_REQUEST, "不允许从「" + STATUS_MAP.getOrDefault(prescription.getStatus(), prescription.getStatus()) + "」变更为「" + STATUS_MAP.getOrDefault(status, status) + "」");
         }
 
         prescription.setStatus(status);

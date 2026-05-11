@@ -10,6 +10,7 @@ export interface AppointmentCreateForm {
   patientName: string
   patientPhone: string
   symptoms?: string
+  status?: string
 }
 
 export interface AppointmentQueryParams {

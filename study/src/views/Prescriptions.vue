@@ -9,14 +9,16 @@
             <el-select v-model="prescriptionStatus" placeholder="选择状态" style="width: 200px" @change="loadPrescriptions">
               <el-option label="全部" value=""></el-option>
               <el-option label="待审核" value="pending"></el-option>
-              <el-option label="已审核" value="approved"></el-option>
+              <el-option label="已通过" value="approved"></el-option>
               <el-option label="已拒绝" value="rejected"></el-option>
+              <el-option label="有效" value="valid"></el-option>
               <el-option label="已完成" value="completed"></el-option>
               <el-option label="已过期" value="expired"></el-option>
             </el-select>
           </div>
           <el-table :data="filteredPrescriptions" style="width: 100%" v-loading="loading">
             <el-table-column prop="prescriptionNo" label="处方编号" width="180"></el-table-column>
+            <el-table-column prop="patientName" label="患者姓名" width="120"></el-table-column>
             <el-table-column label="医生" width="150">
               <template #default="scope">
                 <div class="doctor-info">
@@ -229,6 +231,7 @@ const getStatusType = (status: string) => {
     pending: 'warning',
     approved: 'success',
     rejected: 'danger',
+    valid: 'success',
     completed: 'info',
     expired: 'info'
   }
@@ -238,8 +241,9 @@ const getStatusType = (status: string) => {
 const getStatusText = (status: string) => {
   const statusMap: Record<string, string> = {
     pending: '待审核',
-    approved: '已审核',
+    approved: '已通过',
     rejected: '已拒绝',
+    valid: '有效',
     completed: '已完成',
     expired: '已过期'
   }

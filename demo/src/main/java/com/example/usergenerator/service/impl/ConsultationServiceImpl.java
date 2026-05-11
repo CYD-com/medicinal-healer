@@ -7,9 +7,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.usergenerator.dto.consultation.ConsultationCreateDTO;
 import com.example.usergenerator.entity.Consultation;
 import com.example.usergenerator.entity.Doctor;
+import com.example.usergenerator.entity.SysUser;
 import com.example.usergenerator.exception.BusinessException;
 import com.example.usergenerator.mapper.ConsultationMapper;
 import com.example.usergenerator.mapper.DoctorMapper;
+import com.example.usergenerator.mapper.SysUserMapper;
 import com.example.usergenerator.service.ConsultationService;
 import com.example.usergenerator.service.ConsultationMessageService;
 import com.example.usergenerator.vo.consultation.ConsultationVO;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Consultation> implements ConsultationService {
 
     private final DoctorMapper doctorMapper;
+    private final SysUserMapper sysUserMapper;
     private final ConsultationMessageService consultationMessageService;
     private final ConsultationMapper consultationMapper;
 
@@ -259,6 +262,11 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         vo.setStatus(consultation.getStatus());
         vo.setStatusText(STATUS_MAP.getOrDefault(consultation.getStatus(), consultation.getStatus()));
         vo.setCreatedAt(consultation.getCreatedAt());
+
+        if (consultation.getUserId() != null) {
+            SysUser patient = sysUserMapper.selectById(consultation.getUserId());
+            vo.setPatientName(patient != null ? patient.getRealName() : null);
+        }
 
         if (doctor != null) {
             ConsultationVO.DoctorVO doctorVO = new ConsultationVO.DoctorVO();

@@ -16,9 +16,12 @@
         style="width: 150px; margin-right: 12px"
         @change="handleSearch"
       >
+        <el-option label="待审核" value="pending" />
+        <el-option label="已通过" value="approved" />
+        <el-option label="已拒绝" value="rejected" />
         <el-option label="有效" value="valid" />
+        <el-option label="已完成" value="completed" />
         <el-option label="已过期" value="expired" />
-        <el-option label="已作废" value="void" />
       </el-select>
       <el-button type="primary" @click="handleSearch">
         <el-icon><Search /></el-icon>
@@ -29,6 +32,7 @@
 
     <el-table :data="prescriptions" stripe border style="width: 100%" v-loading="loading">
       <el-table-column prop="prescriptionNo" label="处方编号" width="200" />
+      <el-table-column prop="patientName" label="患者姓名" width="120" />
       <el-table-column prop="diagnosis" label="诊断" show-overflow-tooltip />
       <el-table-column prop="doctorAdvice" label="医嘱" show-overflow-tooltip />
       <el-table-column prop="drugCount" label="药品数" width="80" />
@@ -120,18 +124,24 @@ const searchForm = ref({
 
 const statusTagType = (status: string) => {
   const map: Record<string, string> = {
+    pending: 'warning',
+    approved: 'success',
+    rejected: 'danger',
     valid: 'success',
-    expired: 'warning',
-    void: 'danger'
+    completed: 'info',
+    expired: 'info'
   }
   return (map[status] || 'info') as any
 }
 
 const statusLabel = (status: string) => {
   const map: Record<string, string> = {
+    pending: '待审核',
+    approved: '已通过',
+    rejected: '已拒绝',
     valid: '有效',
-    expired: '已过期',
-    void: '已作废'
+    completed: '已完成',
+    expired: '已过期'
   }
   return map[status] || status
 }

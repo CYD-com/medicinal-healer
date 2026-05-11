@@ -5,6 +5,7 @@ import com.example.usergenerator.annotation.LogOperation;
 import com.example.usergenerator.common.Result;
 import com.example.usergenerator.constant.RoleConstants;
 import com.example.usergenerator.dto.prescription.PrescriptionCreateDTO;
+import com.example.usergenerator.dto.prescription.PrescriptionQueryDTO;
 import com.example.usergenerator.service.PrescriptionService;
 import com.example.usergenerator.util.PermissionUtil;
 import com.example.usergenerator.vo.prescription.PrescriptionVO;
@@ -52,6 +53,11 @@ public class PrescriptionController {
         IPage<PrescriptionVO> result;
         if (RoleConstants.DOCTOR.equals(role)) {
             result = prescriptionService.getPrescriptionsByDoctorUserIdPage(userId, status, prescriptionNo, pageParam);
+        } else if (RoleConstants.ADMIN.equals(role)) {
+            PrescriptionQueryDTO query = new PrescriptionQueryDTO();
+            query.setStatus(status);
+            query.setPrescriptionNo(prescriptionNo);
+            result = prescriptionService.getPrescriptionListPage(query, pageParam);
         } else {
             result = prescriptionService.getPrescriptionsByUserIdPage(userId, status, pageParam);
         }

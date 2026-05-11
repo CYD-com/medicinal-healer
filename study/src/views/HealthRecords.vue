@@ -61,14 +61,18 @@
                 <el-table-column prop="diseaseName" label="疾病名称" width="180"></el-table-column>
                 <el-table-column prop="diagnosisDate" label="诊断日期" width="180"></el-table-column>
                 <el-table-column prop="diagnosisHospital" label="诊断医院"></el-table-column>
-                <el-table-column prop="currentStatus" label="当前状态" width="120"></el-table-column>
+                <el-table-column label="当前状态" width="120">
+                  <template #default="{ row }">{{ currentStatusLabel(row.currentStatus) }}</template>
+                </el-table-column>
                 <el-table-column prop="treatment" label="治疗方式" width="120"></el-table-column>
               </el-table>
             </el-collapse-item>
             <el-collapse-item title="家族病史">
               <el-table :data="familyDiseases" style="width: 100%">
                 <el-table-column prop="diseaseName" label="疾病名称" width="180"></el-table-column>
-                <el-table-column prop="relation" label="关系" width="120"></el-table-column>
+                <el-table-column label="关系" width="120">
+                  <template #default="{ row }">{{ relationLabel(row.relation) }}</template>
+                </el-table-column>
                 <el-table-column prop="remark" label="备注"></el-table-column>
               </el-table>
             </el-collapse-item>
@@ -76,7 +80,9 @@
               <el-table :data="allergies" style="width: 100%">
                 <el-table-column prop="allergen" label="过敏原" width="180"></el-table-column>
                 <el-table-column prop="reaction" label="反应" width="180"></el-table-column>
-                <el-table-column prop="severity" label="严重程度" width="120"></el-table-column>
+                <el-table-column label="严重程度" width="120">
+                  <template #default="{ row }">{{ severityLabel(row.severity) }}</template>
+                </el-table-column>
               </el-table>
             </el-collapse-item>
             <el-collapse-item title="手术史">
@@ -175,6 +181,19 @@ const indicatorLabel = computed(() => {
   return labels[indicatorType.value] || '健康'
 })
 
+const currentStatusLabel = (val) => {
+  const map = { recovered: '已康复', chronic: '慢性', ongoing: '治疗中' }
+  return map[val] || val
+}
+const relationLabel = (val) => {
+  const map = { father: '父亲', mother: '母亲', grandfather: '祖父', grandmother: '祖母', sibling: '兄弟姐妹', child: '子女' }
+  return map[val] || val
+}
+const severityLabel = (val) => {
+  const map = { severe: '严重', moderate: '中等', mild: '轻微' }
+  return map[val] || val
+}
+
 const filteredVisits = computed(() => {
   if (!visitSearch.value) return visits.value
   const keyword = visitSearch.value.toLowerCase()
@@ -189,8 +208,8 @@ const filteredVisits = computed(() => {
 const loadOverview = async () => {
   overviewLoading.value = true
   try {
-    const response = await healthRecordAPI.getOverview()
-    overviewData.value = response
+    const res = await healthRecordAPI.getOverview()
+    overviewData.value = res.data || res
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -201,11 +220,12 @@ const loadOverview = async () => {
 const loadMedicalHistory = async () => {
   medicalHistoryLoading.value = true
   try {
-    const response = await healthRecordAPI.getMedicalHistory()
-    pastDiseases.value = response.pastDiseases || []
-    familyDiseases.value = response.familyDiseases || []
-    allergies.value = response.allergies || []
-    surgicalHistory.value = response.surgicalHistory || []
+    const res = await healthRecordAPI.getMedicalHistory()
+    const data = res.data || res
+    pastDiseases.value = data.pastDiseases || []
+    familyDiseases.value = data.familyDiseases || []
+    allergies.value = data.allergies || []
+    surgicalHistory.value = data.surgicalHistory || []
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -216,8 +236,9 @@ const loadMedicalHistory = async () => {
 const loadVisits = async () => {
   visitsLoading.value = true
   try {
-    const response = await healthRecordAPI.getVisits()
-    visits.value = response.list || []
+    const res = await healthRecordAPI.getVisits()
+    const data = res.data || res
+    visits.value = data.list || []
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {
@@ -228,11 +249,11 @@ const loadVisits = async () => {
 const loadIndicators = async () => {
   indicatorsLoading.value = true
   try {
-    const response = await healthRecordAPI.getIndicators({
+    const res = await healthRecordAPI.getIndicators({
       type: indicatorType.value
     })
-    const data = response.data || response
-    indicators.value = data.records || data || []
+    const data = res.data || res
+    indicators.value = data.records || []
   } catch {
     // 错误提示已由全局拦截器处理
   } finally {

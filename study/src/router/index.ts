@@ -18,6 +18,7 @@ import DoctorSchedule from '@/views/DoctorSchedule.vue'
 import DoctorConsultations from '@/views/DoctorConsultations.vue'
 import DoctorPrescriptions from '@/views/DoctorPrescriptions.vue'
 import AIChat from '@/views/AIChat.vue'
+import ApprovalManagement from '@/views/ApprovalManagement.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -97,6 +98,12 @@ const routes: RouteRecordRaw[] = [
         name: 'adminDoctors',
         component: AdminDoctors,
         meta: { title: '医生管理', roles: ['admin'] }
+      },
+      {
+        path: '/admin/approvals',
+        name: 'adminApprovals',
+        component: ApprovalManagement,
+        meta: { title: '审批管理', roles: ['admin'] }
       },
       {
         path: '/doctor/schedule',

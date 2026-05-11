@@ -27,6 +27,8 @@ public class PrescriptionVO {
 
     private String statusText;
 
+    private String patientName;
+
     private LocalDateTime validUntil;
 
     private LocalDateTime createdAt;

@@ -11,6 +11,7 @@
 
     <el-table :data="consultations" stripe border style="width: 100%" v-loading="loading">
       <el-table-column prop="consultationNo" label="问诊编号" width="180" />
+      <el-table-column prop="patientName" label="患者姓名" width="120" />
       <el-table-column prop="symptom" label="主诉" show-overflow-tooltip />
       <el-table-column prop="description" label="详细描述" show-overflow-tooltip />
       <el-table-column label="类型" width="100">

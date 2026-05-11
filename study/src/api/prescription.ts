@@ -49,6 +49,7 @@ export interface PrescriptionVO {
   drugCount: number
   status: string
   statusText: string
+  patientName: string
   validUntil: string
   createdAt: string
   drugs: PrescriptionItemVO[]

@@ -12,17 +12,14 @@
           <router-link to="/admin/departments" class="sidebar-item" active-class="active">
             科室管理
           </router-link>
-          <!-- <router-link to="/admin/doctors" class="sidebar-item" active-class="active">
-            医生管理
-          </router-link> -->
           <router-link to="/users" class="sidebar-item" active-class="active">
             用户管理
           </router-link>
           <router-link to="/drugs" class="sidebar-item" active-class="active">
             药品管理
           </router-link>
-          <router-link to="/healthRecords" class="sidebar-item" active-class="active">
-            健康档案
+          <router-link to="/admin/approvals" class="sidebar-item" active-class="active">
+            审批管理
           </router-link>
           <router-link to="/my" class="sidebar-item" active-class="active">
             个人中心
