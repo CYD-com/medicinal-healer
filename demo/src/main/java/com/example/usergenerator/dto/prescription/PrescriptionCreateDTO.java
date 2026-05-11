@@ -10,6 +10,8 @@ import java.util.List;
 @Data
 public class PrescriptionCreateDTO {
 
+    private Long userId;
+
     private Long doctorId;
 
     @NotBlank(message = "诊断不能为空")

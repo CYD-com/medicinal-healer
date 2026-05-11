@@ -2,11 +2,10 @@
   <div class="doctor-consultations">
     <div class="filter-bar">
       <el-radio-group v-model="statusFilter" @change="fetchConsultations">
-        <el-radio-button label="">全部</el-radio-button>
-        <el-radio-button label="pending">待回复</el-radio-button>
-        <el-radio-button label="in_progress">进行中</el-radio-button>
-        <el-radio-button label="completed">已完成</el-radio-button>
-      </el-radio-group>
+          <el-radio-button label="">全部</el-radio-button>
+          <el-radio-button label="pending">待回复</el-radio-button>
+          <el-radio-button label="in_progress">进行中</el-radio-button>
+        </el-radio-group>
     </div>
 
     <el-table :data="consultations" stripe border style="width: 100%" v-loading="loading">
@@ -240,6 +239,7 @@ const emptyDrug = (): PrescriptionItemForm => ({
 })
 
 const prescriptionForm = ref<PrescriptionCreateForm>({
+  userId: undefined,
   diagnosis: '',
   doctorAdvice: '',
   items: [emptyDrug()]
@@ -414,7 +414,9 @@ const handleEndConsultation = async () => {
 }
 
 const showPrescriptionDialog = (row: any) => {
+  currentConsultation.value = row
   prescriptionForm.value = {
+    userId: row.userId,
     diagnosis: row.diagnosis || '',
     doctorAdvice: '',
     items: [{ drugId: '', drugName: '', specification: '', dosage: '', quantity: 1, unit: '', unitPrice: 0 }]
@@ -445,8 +447,12 @@ const handlePrescriptionSubmit = async () => {
   prescriptionSubmitting.value = true
   try {
     await createPrescription(prescriptionForm.value)
+    if (currentConsultation.value) {
+      await completeConsultation(currentConsultation.value.id, { diagnosis: prescriptionForm.value.diagnosis })
+    }
     ElMessage.success('处方开具成功')
     prescriptionVisible.value = false
+    fetchConsultations()
   } catch {
   } finally {
     prescriptionSubmitting.value = false

@@ -12,6 +12,7 @@ export interface PrescriptionItemForm {
 }
 
 export interface PrescriptionCreateForm {
+  userId?: number
   doctorId?: number
   diagnosis: string
   doctorAdvice?: string

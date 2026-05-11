@@ -73,7 +73,7 @@ public class PrescriptionServiceImpl extends ServiceImpl<PrescriptionMapper, Pre
 
         Prescription prescription = new Prescription();
         prescription.setPrescriptionNo(generatePrescriptionNo());
-        prescription.setUserId(userId);
+        prescription.setUserId(dto.getUserId() != null ? dto.getUserId() : userId);
         prescription.setDoctorId(doctor.getId());
         prescription.setDiagnosis(dto.getDiagnosis());
         prescription.setDoctorAdvice(dto.getDoctorAdvice());

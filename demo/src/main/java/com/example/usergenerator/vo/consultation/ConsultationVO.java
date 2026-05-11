@@ -9,6 +9,8 @@ public class ConsultationVO {
 
     private Long id;
 
+    private Long userId;
+
     private String consultationNo;
 
     private DoctorVO doctor;

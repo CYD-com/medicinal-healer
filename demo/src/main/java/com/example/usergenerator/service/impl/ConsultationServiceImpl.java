@@ -193,6 +193,8 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         wrapper.eq(Consultation::getDoctorId, doctorId);
         if (status != null && !status.isEmpty()) {
             wrapper.eq(Consultation::getStatus, status);
+        } else {
+            wrapper.notIn(Consultation::getStatus, "completed", "closed");
         }
         wrapper.orderByDesc(Consultation::getCreatedAt);
         IPage<Consultation> consultationPage = baseMapper.selectPage(page, wrapper);
@@ -249,6 +251,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
     private ConsultationVO convertToVO(Consultation consultation, Doctor doctor) {
         ConsultationVO vo = new ConsultationVO();
         vo.setId(consultation.getId());
+        vo.setUserId(consultation.getUserId());
         vo.setConsultationNo(consultation.getConsultationNo());
         vo.setConsultationType(consultation.getConsultationType());
         vo.setSymptom(consultation.getSymptom());
