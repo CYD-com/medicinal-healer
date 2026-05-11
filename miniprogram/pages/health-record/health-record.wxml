@@ -1,0 +1,193 @@
+<view class="health-page">
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === 'overview' ? 'active' : ''}}" bindtap="switchTab" data-tab="overview">
+      <text>概览</text>
+    </view>
+    <view class="tab-item {{currentTab === 'history' ? 'active' : ''}}" bindtap="switchTab" data-tab="history">
+      <text>病史</text>
+    </view>
+    <view class="tab-item {{currentTab === 'visits' ? 'active' : ''}}" bindtap="switchTab" data-tab="visits">
+      <text>就诊</text>
+    </view>
+    <view class="tab-item {{currentTab === 'indicators' ? 'active' : ''}}" bindtap="switchTab" data-tab="indicators">
+      <text>指标</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentTab === 'overview'}}" class="tab-content">
+    <view wx:if="{{overview}}" class="overview-container">
+      <view class="summary-card">
+        <view class="summary-item">
+          <text class="summary-value">{{overview.totalVisits || 0}}</text>
+          <text class="summary-label">就诊次数</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{overview.activePrescriptions || 0}}</text>
+          <text class="summary-label">有效处方</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{overview.authorizedDoctors || 0}}</text>
+          <text class="summary-label">授权医生</text>
+        </view>
+      </view>
+
+      <view class="card">
+        <text class="section-title">基本信息</text>
+        <view class="info-row">
+          <text class="label">血型</text>
+          <text class="value">{{overview.bloodType || '未填写'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">身高</text>
+          <text class="value">{{overview.height ? overview.height + 'cm' : '未填写'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">体重</text>
+          <text class="value">{{overview.weight ? overview.weight + 'kg' : '未填写'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">过敏史</text>
+          <text class="value">{{overview.allergies || '无'}}</text>
+        </view>
+      </view>
+
+      <view class="card" wx:if="{{overview.recentVisits && overview.recentVisits.length > 0}}">
+        <text class="section-title">最近就诊</text>
+        <view class="visit-item" wx:for="{{overview.recentVisits}}" wx:key="id">
+          <view class="visit-header">
+            <text class="visit-dept">{{item.departmentName}}</text>
+            <text class="visit-date">{{item.visitDate}}</text>
+          </view>
+          <text class="visit-diagnosis">{{item.diagnosis}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-tip">
+      <text>暂无健康档案信息</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentTab === 'history'}}" class="tab-content">
+    <view wx:if="{{medicalHistory}}" class="history-container">
+      <view class="card">
+        <text class="section-title">既往病史</text>
+        <view wx:if="{{medicalHistory.pastDiseases && medicalHistory.pastDiseases.length > 0}}">
+          <view class="history-item" wx:for="{{medicalHistory.pastDiseases}}" wx:key="id">
+            <text class="disease-name">{{item.diseaseName}}</text>
+            <text class="disease-time">{{item.diagnosedDate}}</text>
+            <text class="disease-desc">{{item.description}}</text>
+          </view>
+        </view>
+        <view wx:else class="empty-tip">无既往病史记录</view>
+      </view>
+
+      <view class="card">
+        <text class="section-title">过敏史</text>
+        <view wx:if="{{medicalHistory.allergies && medicalHistory.allergies.length > 0}}">
+          <view class="history-item" wx:for="{{medicalHistory.allergies}}" wx:key="id">
+            <text class="disease-name">{{item.allergen}}</text>
+            <text class="disease-desc">反应：{{item.reaction}}</text>
+          </view>
+        </view>
+        <view wx:else class="empty-tip">无过敏史记录</view>
+      </view>
+
+      <view class="card">
+        <text class="section-title">家族病史</text>
+        <view wx:if="{{medicalHistory.familyDiseases && medicalHistory.familyDiseases.length > 0}}">
+          <view class="history-item" wx:for="{{medicalHistory.familyDiseases}}" wx:key="id">
+            <text class="disease-name">{{item.diseaseName}}</text>
+            <text class="disease-desc">亲属：{{item.relationship}}</text>
+          </view>
+        </view>
+        <view wx:else class="empty-tip">无家族病史记录</view>
+      </view>
+
+      <view class="card">
+        <text class="section-title">手术史</text>
+        <view wx:if="{{medicalHistory.surgicalHistories && medicalHistory.surgicalHistories.length > 0}}">
+          <view class="history-item" wx:for="{{medicalHistory.surgicalHistories}}" wx:key="id">
+            <text class="disease-name">{{item.surgeryName}}</text>
+            <text class="disease-time">{{item.surgeryDate}}</text>
+            <text class="disease-desc">{{item.description}}</text>
+          </view>
+        </view>
+        <view wx:else class="empty-tip">无手术史记录</view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-tip">
+      <text>暂无病史信息</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentTab === 'visits'}}" class="tab-content">
+    <view wx:if="{{visits.length > 0}}" class="visits-container">
+      <view class="card visit-card" wx:for="{{visits}}" wx:key="id" bindtap="goVisitDetail" data-id="{{item.id}}">
+        <view class="visit-header">
+          <text class="visit-dept">{{item.departmentName}}</text>
+          <text class="visit-date">{{item.visitDate}}</text>
+        </view>
+        <view class="visit-body">
+          <text class="visit-doctor">医生：{{item.doctorName}}</text>
+          <text class="visit-diagnosis">诊断：{{item.diagnosis}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-tip">
+      <text>暂无就诊记录</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentTab === 'indicators'}}" class="tab-content">
+    <view class="indicator-selector">
+      <picker bindchange="onIndicatorTypeChange" value="{{indicatorIndex}}" range="{{indicatorTypes}}" range-key="label">
+        <view class="filter-item">
+          <text>{{indicatorTypes[indicatorIndex].label}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view wx:if="{{indicators.length > 0}}" class="indicators-container">
+      <view class="card indicator-card" wx:for="{{indicators}}" wx:key="id">
+        <view class="indicator-header">
+          <text class="indicator-value">{{item.value}} {{item.unit}}</text>
+          <text class="indicator-date">{{item.recordDate}}</text>
+        </view>
+        <text class="indicator-status {{item.isNormal ? 'normal' : 'abnormal'}}">
+          {{item.isNormal ? '正常' : '异常'}}
+        </text>
+      </view>
+
+      <button class="btn-outline add-btn" bindtap="showAddIndicator">添加新记录</button>
+    </view>
+
+    <view wx:else class="empty-tip">
+      <text>暂无{{indicatorTypes[indicatorIndex].label}}记录</text>
+      <button class="btn-outline add-btn" bindtap="showAddIndicator">添加新记录</button>
+    </view>
+  </view>
+
+  <view wx:if="{{showAddModal}}" class="modal-mask" bindtap="hideAddModal">
+    <view class="modal-content" catchtap>
+      <text class="modal-title">添加{{indicatorTypes[indicatorIndex].label}}记录</text>
+      <view class="form-item">
+        <text class="label">数值 *</text>
+        <input class="input" placeholder="请输入数值" type="digit" value="{{newIndicator.value}}" bindinput="onIndicatorInput" data-field="value" />
+      </view>
+      <view class="form-item">
+        <text class="label">记录日期</text>
+        <picker mode="date" value="{{newIndicator.recordDate}}" bindchange="onIndicatorDateChange">
+          <view class="input picker-input">{{newIndicator.recordDate || '请选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="modal-actions">
+        <button class="btn-outline" bindtap="hideAddModal">取消</button>
+        <button class="btn-primary" bindtap="addIndicator">确认</button>
+      </view>
+    </view>
+  </view>
+</view>

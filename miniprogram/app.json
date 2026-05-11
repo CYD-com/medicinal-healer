@@ -1,0 +1,58 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/register/register",
+    "pages/appointment/appointment",
+    "pages/appointment/create",
+    "pages/department/department",
+    "pages/doctor/doctor",
+    "pages/consultation/consultation",
+    "pages/consultation/create",
+    "pages/consultation/detail",
+    "pages/health-record/health-record",
+    "pages/prescription/prescription",
+    "pages/profile/profile",
+    "pages/profile/edit"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4A90D9",
+    "navigationBarTitleText": "智慧医疗",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#4A90D9",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/appointment/appointment",
+        "text": "预约",
+        "iconPath": "images/appointment.png",
+        "selectedIconPath": "images/appointment-active.png"
+      },
+      {
+        "pagePath": "pages/consultation/consultation",
+        "text": "问诊",
+        "iconPath": "images/consult.png",
+        "selectedIconPath": "images/consult-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

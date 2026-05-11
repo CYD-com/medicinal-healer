@@ -1,0 +1,40 @@
+<view class="detail-page">
+  <view class="consultation-info">
+    <view class="info-header">
+      <text class="doctor-name">{{consultation.doctorName}}</text>
+      <text class="tag {{consultation.statusClass}}">{{consultation.statusText}}</text>
+    </view>
+    <text class="symptoms">症状：{{consultation.symptoms}}</text>
+  </view>
+
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation>
+    <view wx:if="{{messages.length === 0}}" class="empty-messages">
+      <text>暂无消息记录</text>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
+      <view class="message-item {{item.senderType === 'patient' ? 'self' : 'other'}}">
+        <view class="message-bubble">
+          <text class="message-content">{{item.content}}</text>
+          <text class="message-time">{{item.createTimeFormatted}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{consultation.status !== 'completed' && consultation.status !== 'cancelled'}}" class="input-bar">
+    <input
+      class="message-input"
+      placeholder="输入消息..."
+      value="{{inputMessage}}"
+      bindinput="onMessageInput"
+      bindconfirm="sendMessage"
+      confirm-type="send"
+    />
+    <button class="send-btn" bindtap="sendMessage" disabled="{{!inputMessage.trim()}}">发送</button>
+  </view>
+
+  <view wx:if="{{consultation.status === 'completed'}}" class="completed-tip">
+    <text>问诊已完成</text>
+  </view>
+</view>

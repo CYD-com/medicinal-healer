@@ -1,0 +1,66 @@
+.department-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20rpx 30rpx;
+}
+
+.dept-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.dept-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.dept-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  background: #e8f4fd;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.dept-icon {
+  font-size: 40rpx;
+}
+
+.dept-info {
+  flex: 1;
+}
+
+.dept-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.dept-desc {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.dept-count {
+  font-size: 22rpx;
+  color: #4A90D9;
+}
+
+.arrow {
+  font-size: 36rpx;
+  color: #ccc;
+  margin-left: 16rpx;
+}

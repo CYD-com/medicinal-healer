@@ -1,0 +1,109 @@
+page {
+  background-color: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.container {
+  padding: 20rpx 30rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4A90D9, #357ABD);
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-primary::after {
+  border: none;
+}
+
+.btn-primary[disabled] {
+  background: #ccc;
+  color: #999;
+}
+
+.btn-outline {
+  background: #fff;
+  color: #4A90D9;
+  border: 2rpx solid #4A90D9;
+  border-radius: 12rpx;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-outline::after {
+  border: none;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 60rpx 0;
+  font-size: 28rpx;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  margin-right: 10rpx;
+}
+
+.tag-primary {
+  background: rgba(74, 144, 217, 0.1);
+  color: #4A90D9;
+}
+
+.tag-success {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+}
+
+.tag-warning {
+  background: rgba(250, 173, 20, 0.1);
+  color: #faad14;
+}
+
+.tag-danger {
+  background: rgba(245, 108, 108, 0.1);
+  color: #f56c6c;
+}
+
+.tag-info {
+  background: rgba(144, 147, 153, 0.1);
+  color: #909399;
+}

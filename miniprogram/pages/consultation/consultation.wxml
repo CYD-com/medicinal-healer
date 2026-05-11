@@ -1,0 +1,89 @@
+<view class="consultation-page">
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === 'list' ? 'active' : ''}}" bindtap="switchTab" data-tab="list">
+      <text>我的问诊</text>
+    </view>
+    <view class="tab-item {{currentTab === 'new' ? 'active' : ''}}" bindtap="switchTab" data-tab="new">
+      <text>发起问诊</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentTab === 'list'}}">
+    <view class="filter-bar">
+      <picker bindchange="onStatusChange" value="{{statusIndex}}" range="{{statusList}}" range-key="label">
+        <view class="filter-item">
+          <text>{{statusList[statusIndex].label}}</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="list-container">
+      <view wx:if="{{loading}}" class="loading">
+        <text>加载中...</text>
+      </view>
+
+      <view wx:elif="{{consultations.length === 0}}" class="empty-tip">
+        <text>暂无问诊记录</text>
+      </view>
+
+      <view wx:else>
+        <view class="consultation-card" wx:for="{{consultations}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+          <view class="card-header">
+            <text class="doctor-name">{{item.doctorName}}</text>
+            <text class="tag {{item.statusClass}}">{{item.statusText}}</text>
+          </view>
+          <view class="card-body">
+            <text class="symptoms">{{item.symptoms}}</text>
+            <text class="time">{{item.createTime}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{hasMore && !loading}}" class="load-more" bindtap="loadMore">
+        <text>加载更多</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{currentTab === 'new'}}">
+    <view class="create-form">
+      <view class="card">
+        <view class="form-item">
+          <text class="label">选择医生</text>
+          <view class="doctor-display" wx:if="{{selectedDoctor}}">
+            <image class="doctor-avatar" src="{{selectedDoctor.avatar ? baseUrl + selectedDoctor.avatar : '/images/default-avatar.png'}}" mode="aspectFill"></image>
+            <view class="doctor-info">
+              <text class="doctor-name">{{selectedDoctor.name}}</text>
+              <text class="doctor-dept">{{selectedDoctor.department.name}}</text>
+            </view>
+            <text class="remove-btn" bindtap="removeDoctor">✕</text>
+          </view>
+          <view wx:else class="select-btn" bindtap="goSelectDoctor">
+            <text>请选择医生</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+
+        <view class="form-item">
+          <text class="label">症状描述 *</text>
+          <textarea class="textarea" placeholder="请详细描述您的症状" value="{{form.symptoms}}" bindinput="onInput" data-field="symptoms" maxlength="500" />
+        </view>
+
+        <view class="form-item">
+          <text class="label">症状持续时间</text>
+          <input class="input" placeholder="例如：3天" value="{{form.duration}}" bindinput="onInput" data-field="duration" />
+        </view>
+
+        <view class="form-item">
+          <text class="label">既往病史（选填）</text>
+          <textarea class="textarea" placeholder="请描述您的既往病史" value="{{form.medicalHistory}}" bindinput="onInput" data-field="medicalHistory" maxlength="300" />
+        </view>
+      </view>
+
+      <button class="btn-primary" bindtap="onSubmit" disabled="{{submitting}}">
+        {{submitting ? '提交中...' : '提交问诊'}}
+      </button>
+    </view>
+  </view>
+</view>

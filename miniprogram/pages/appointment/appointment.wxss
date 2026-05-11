@@ -1,0 +1,207 @@
+.appointment-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #4A90D9;
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: #4A90D9;
+  border-radius: 2rpx;
+}
+
+.filter-bar {
+  background: #fff;
+  padding: 20rpx 30rpx;
+  display: flex;
+  gap: 20rpx;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: #f5f7fa;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.filter-item .arrow {
+  margin-left: 8rpx;
+  font-size: 20rpx;
+}
+
+.list-container {
+  padding: 20rpx 30rpx;
+}
+
+.appointment-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.dept-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.card-body {
+  margin-bottom: 20rpx;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 10rpx;
+  font-size: 26rpx;
+}
+
+.info-row .label {
+  color: #999;
+  width: 120rpx;
+}
+
+.info-row .value {
+  color: #333;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}
+
+.btn-sm {
+  padding: 12rpx 30rpx !important;
+  font-size: 24rpx !important;
+  width: auto !important;
+}
+
+.dept-list {
+  padding: 20rpx 30rpx;
+}
+
+.dept-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.dept-item {
+  width: calc(25% - 15rpx);
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.dept-item.selected {
+  background: #e8f4fd;
+  border: 2rpx solid #4A90D9;
+}
+
+.dept-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.dept-item .dept-name {
+  font-size: 24rpx;
+  color: #333;
+  text-align: center;
+}
+
+.doctor-list {
+  margin-top: 20rpx;
+}
+
+.doctor-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.doctor-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background: #f0f0f0;
+}
+
+.doctor-info {
+  flex: 1;
+}
+
+.doctor-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6rpx;
+  display: block;
+}
+
+.doctor-title {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.load-more {
+  text-align: center;
+  padding: 30rpx;
+  color: #4A90D9;
+  font-size: 26rpx;
+}

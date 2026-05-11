@@ -1,0 +1,211 @@
+.consultation-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #4A90D9;
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: #4A90D9;
+  border-radius: 2rpx;
+}
+
+.filter-bar {
+  background: #fff;
+  padding: 20rpx 30rpx;
+}
+
+.filter-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: #f5f7fa;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.filter-item .arrow {
+  margin-left: 8rpx;
+  font-size: 20rpx;
+}
+
+.list-container {
+  padding: 20rpx 30rpx;
+}
+
+.consultation-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.card-header .doctor-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.card-body .symptoms {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-body .time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.create-form {
+  padding: 20rpx 30rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-item .label {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.form-item .input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.textarea {
+  width: 100%;
+  height: 200rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.doctor-display {
+  display: flex;
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.doctor-display .doctor-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  background: #e0e0e0;
+}
+
+.doctor-display .doctor-info {
+  flex: 1;
+}
+
+.doctor-display .doctor-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.doctor-display .doctor-dept {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.remove-btn {
+  font-size: 32rpx;
+  color: #999;
+  padding: 10rpx;
+}
+
+.select-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.select-btn .arrow {
+  font-size: 36rpx;
+  color: #ccc;
+}
+
+.btn-primary {
+  margin-top: 40rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+}
+
+.load-more {
+  text-align: center;
+  padding: 30rpx;
+  color: #4A90D9;
+  font-size: 26rpx;
+}

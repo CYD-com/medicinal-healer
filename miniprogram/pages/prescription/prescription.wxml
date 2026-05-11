@@ -1,0 +1,93 @@
+<view class="prescription-page">
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <view wx:elif="{{prescriptions.length === 0}}" class="empty-tip">
+    <text>暂无处方记录</text>
+  </view>
+
+  <view wx:else class="prescription-list">
+    <view
+      class="prescription-card"
+      wx:for="{{prescriptions}}"
+      wx:key="id"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="card-header">
+        <text class="prescription-no">处方号：{{item.prescriptionNo}}</text>
+        <text class="tag {{item.statusClass}}">{{item.statusText}}</text>
+      </view>
+      <view class="card-body">
+        <view class="info-row">
+          <text class="label">医生：</text>
+          <text class="value">{{item.doctorName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">开具日期：</text>
+          <text class="value">{{item.createTime}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.diagnosis}}">
+          <text class="label">诊断：</text>
+          <text class="value">{{item.diagnosis}}</text>
+        </view>
+      </view>
+      <view class="card-footer">
+        <text class="item-count">{{item.items ? item.items.length : 0}}种药品</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{hasMore && !loading}}" class="load-more" bindtap="loadMore">
+    <text>加载更多</text>
+  </view>
+
+  <view wx:if="{{showDetail && selectedPrescription}}" class="detail-modal" bindtap="closeDetail">
+    <view class="detail-content" catchtap>
+      <view class="detail-header">
+        <text class="detail-title">处方详情</text>
+        <text class="close-btn" bindtap="closeDetail">✕</text>
+      </view>
+
+      <scroll-view scroll-y class="detail-scroll">
+        <view class="detail-section">
+          <text class="detail-label">处方号</text>
+          <text class="detail-value">{{selectedPrescription.prescriptionNo}}</text>
+        </view>
+        <view class="detail-section">
+          <text class="detail-label">医生</text>
+          <text class="detail-value">{{selectedPrescription.doctorName}}</text>
+        </view>
+        <view class="detail-section">
+          <text class="detail-label">诊断</text>
+          <text class="detail-value">{{selectedPrescription.diagnosis || '未填写'}}</text>
+        </view>
+        <view class="detail-section">
+          <text class="detail-label">开具日期</text>
+          <text class="detail-value">{{selectedPrescription.createTime}}</text>
+        </view>
+
+        <view class="medicine-list" wx:if="{{selectedPrescription.items && selectedPrescription.items.length > 0}}">
+          <text class="medicine-title">药品明细</text>
+          <view class="medicine-item" wx:for="{{selectedPrescription.items}}" wx:key="id">
+            <text class="medicine-name">{{item.drugName}}</text>
+            <view class="medicine-info">
+              <text>规格：{{item.specification}}</text>
+              <text>用量：{{item.dosage}}</text>
+              <text>频次：{{item.frequency}}</text>
+              <text>天数：{{item.days}}天</text>
+            </view>
+            <text class="medicine-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</text>
+          </view>
+        </view>
+
+        <view class="detail-section" wx:if="{{selectedPrescription.remark}}">
+          <text class="detail-label">医嘱</text>
+          <text class="detail-value">{{selectedPrescription.remark}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

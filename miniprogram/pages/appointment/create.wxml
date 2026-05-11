@@ -1,0 +1,98 @@
+<view class="create-page">
+  <view wx:if="{{isDetail && appointment}}" class="detail-container">
+    <view class="card">
+      <view class="detail-header">
+        <text class="tag {{appointment.statusClass}}">{{appointment.statusText}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">预约编号</text>
+        <text class="value">{{appointment.id}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">科室</text>
+        <text class="value">{{appointment.departmentName}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">医生</text>
+        <text class="value">{{appointment.doctorName}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">预约日期</text>
+        <text class="value">{{appointment.appointmentDate}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">时间段</text>
+        <text class="value">{{appointment.timeSlot}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">就诊人</text>
+        <text class="value">{{appointment.patientName}}</text>
+      </view>
+      <view class="detail-item" wx:if="{{appointment.symptoms}}">
+        <text class="label">症状描述</text>
+        <text class="value">{{appointment.symptoms}}</text>
+      </view>
+    </view>
+    <view wx:if="{{appointment.status === 'pending' || appointment.status === 'confirmed'}}" class="action-bar">
+      <button class="btn-outline" bindtap="onCancel">取消预约</button>
+    </view>
+  </view>
+
+  <view wx:else class="form-container">
+    <view class="card">
+      <view class="form-item">
+        <text class="label">选择医生</text>
+        <view class="doctor-display" wx:if="{{doctor}}">
+          <image class="doctor-avatar" src="{{doctor.avatar ? baseUrl + doctor.avatar : '/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="doctor-info">
+            <text class="doctor-name">{{doctor.name}}</text>
+            <text class="doctor-dept">{{departmentName}}</text>
+          </view>
+        </view>
+        <view wx:else class="no-doctor" bindtap="goSelectDoctor">
+          <text>请选择医生</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="form-item">
+        <text class="label">就诊人姓名 *</text>
+        <input class="input" placeholder="请输入就诊人姓名" value="{{form.patientName}}" bindinput="onInput" data-field="patientName" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">就诊人身份证号</text>
+        <input class="input" placeholder="请输入身份证号" value="{{form.patientIdCard}}" bindinput="onInput" data-field="patientIdCard" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">预约日期 *</text>
+        <picker mode="date" start="{{today}}" bindchange="onDateChange" value="{{form.appointmentDate}}">
+          <view class="input picker-input">
+            {{form.appointmentDate || '请选择预约日期'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="label">时间段 *</text>
+        <picker bindchange="onTimeChange" value="{{timeIndex}}" range="{{timeSlots}}">
+          <view class="input picker-input">
+            {{timeSlots[timeIndex] || '请选择时间段'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="label">症状描述</text>
+        <textarea class="textarea" placeholder="请描述您的症状（选填）" value="{{form.symptoms}}" bindinput="onInput" data-field="symptoms" maxlength="200" />
+      </view>
+    </view>
+
+    <button class="btn-primary" bindtap="onSubmit" disabled="{{submitting}}">
+      {{submitting ? '提交中...' : '确认预约'}}
+    </button>
+  </view>
+</view>
