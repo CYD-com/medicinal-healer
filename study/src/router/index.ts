@@ -14,7 +14,8 @@ import HealthRecords from '@/views/HealthRecords.vue'
 import AdminStatistics from '@/views/AdminStatistics.vue'
 import AdminDepartments from '@/views/AdminDepartments.vue'
 import AdminDoctors from '@/views/AdminDoctors.vue'
-import DoctorSchedule from '@/views/DoctorSchedule.vue'
+import DoctorDashboard from '@/views/DoctorDashboard.vue'
+
 import DoctorConsultations from '@/views/DoctorConsultations.vue'
 import DoctorPrescriptions from '@/views/DoctorPrescriptions.vue'
 import AIChat from '@/views/AIChat.vue'
@@ -106,10 +107,10 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '审批管理', roles: ['admin'] }
       },
       {
-        path: '/doctor/schedule',
-        name: 'doctorSchedule',
-        component: DoctorSchedule,
-        meta: { title: '今日排班', roles: ['doctor'] }
+        path: '/doctor/dashboard',
+        name: 'doctorDashboard',
+        component: DoctorDashboard,
+        meta: { title: '控制台', roles: ['doctor'] }
       },
       {
         path: '/doctor/consultations',
@@ -163,7 +164,7 @@ router.beforeEach((to, from, next) => {
       if (role === 'admin') {
         next('/admin/statistics')
       } else if (role === 'doctor') {
-        next('/doctor/schedule')
+        next('/doctor/dashboard')
       } else {
         next('/dashboard')
       }
@@ -176,7 +177,7 @@ router.beforeEach((to, from, next) => {
       if (role === 'admin') {
         next('/admin/statistics')
       } else if (role === 'doctor') {
-        next('/doctor/schedule')
+        next('/doctor/dashboard')
       } else {
         next('/dashboard')
       }

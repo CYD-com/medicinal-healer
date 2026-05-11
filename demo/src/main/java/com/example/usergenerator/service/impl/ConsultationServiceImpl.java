@@ -193,8 +193,6 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         wrapper.eq(Consultation::getDoctorId, doctorId);
         if (status != null && !status.isEmpty()) {
             wrapper.eq(Consultation::getStatus, status);
-        } else {
-            wrapper.notIn(Consultation::getStatus, "completed", "closed");
         }
         wrapper.orderByDesc(Consultation::getCreatedAt);
         IPage<Consultation> consultationPage = baseMapper.selectPage(page, wrapper);

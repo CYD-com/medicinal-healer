@@ -24,6 +24,7 @@ export interface DoctorVO {
 
 export interface ConsultationVO {
   id: number
+  userId: number
   consultationNo: string
   doctor: DoctorVO
   consultationType: string

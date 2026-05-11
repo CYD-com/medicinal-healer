@@ -112,7 +112,7 @@ const handleLogin = async (): Promise<void> => {
       if (role === 'admin') {
         router.push('/admin/statistics')
       } else if (role === 'doctor') {
-        router.push('/doctor/schedule')
+        router.push('/doctor/dashboard')
       } else {
         router.push('/dashboard')
       }

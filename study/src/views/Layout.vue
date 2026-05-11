@@ -26,8 +26,8 @@
           </router-link>
         </template>
         <template v-else-if="isDoctor">
-          <router-link to="/doctor/schedule" class="sidebar-item" active-class="active">
-            今日排班
+          <router-link to="/doctor/dashboard" class="sidebar-item" active-class="active">
+            控制台
           </router-link>
           <router-link to="/doctor/consultations" class="sidebar-item" active-class="active">
             处理问诊

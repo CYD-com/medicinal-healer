@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class JacksonConfigTest {
 
     private static final String EXPECTED_DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    private ObjectMapper buildObjectMapper(Jackson2ObjectMapperBuilderCustomizer customizer) {
+        Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();
+        builder.modulesToInstall(new JavaTimeModule());
+        builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        customizer.customize(builder);
+        return builder.build();
+    }
 
     @Test
     @DisplayName("测试 jacksonCustomizer 方法返回非空对象")
@@ -36,11 +45,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         assertNotNull(objectMapper);
     }
@@ -51,10 +56,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime dateTime = LocalDateTime.of(2024, 1, 15, 10, 30, 45);
         String json = objectMapper.writeValueAsString(dateTime);
@@ -68,10 +70,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         String json = "\"2024-01-15 10:30:45\"";
         LocalDateTime dateTime = objectMapper.readValue(json, LocalDateTime.class);
@@ -86,10 +85,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime dateTime = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
         String json = objectMapper.writeValueAsString(dateTime);
@@ -103,10 +99,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime dateTime = LocalDateTime.of(2024, 12, 31, 23, 59, 59);
         String json = objectMapper.writeValueAsString(dateTime);
@@ -120,10 +113,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime dateTime = LocalDateTime.of(1, 1, 1, 0, 0, 0);
         String json = objectMapper.writeValueAsString(dateTime);
@@ -137,10 +127,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime dateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
         String json = objectMapper.writeValueAsString(dateTime);
@@ -154,10 +141,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime original = LocalDateTime.of(2024, 6, 15, 14, 30, 0);
         String json = objectMapper.writeValueAsString(original);
@@ -172,10 +156,7 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        customizer.customize(objectMapper);
+        ObjectMapper objectMapper = buildObjectMapper(customizer);
 
         LocalDateTime dateTime = LocalDateTime.of(2024, 6, 15, 14, 30, 0);
         String json = objectMapper.writeValueAsString(dateTime);
@@ -251,12 +232,11 @@ class JacksonConfigTest {
         JacksonConfig config = new JacksonConfig();
         Jackson2ObjectMapperBuilderCustomizer customizer = config.jacksonCustomizer();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();
+        customizer.customize(builder);
+        customizer.customize(builder);
 
-        customizer.customize(objectMapper);
-        customizer.customize(objectMapper);
-
+        ObjectMapper objectMapper = builder.build();
         assertNotNull(objectMapper);
     }
 }
