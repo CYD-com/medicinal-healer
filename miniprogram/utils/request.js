@@ -1,5 +1,7 @@
 const app = getApp();
 
+const REQUEST_TIMEOUT = 10000;
+
 function request(options) {
   return new Promise((resolve, reject) => {
     const { url, method = 'GET', data, header = {} } = options;
@@ -9,6 +11,7 @@ function request(options) {
       url: app.globalData.baseUrl + url,
       method,
       data,
+      timeout: REQUEST_TIMEOUT,
       header: {
         'Content-Type': 'application/json',
         'Authorization': token ? 'Bearer ' + token : '',
@@ -37,20 +40,24 @@ function request(options) {
           }, 1500);
           reject(res.data);
         } else {
-          wx.showToast({ title: '服务器错误', icon: 'none' });
+          wx.showToast({ title: '服务器繁忙，请稍后再试', icon: 'none' });
           reject(res.data);
         }
       },
       fail(err) {
-        wx.showToast({ title: '网络错误', icon: 'none' });
+        if (err.errMsg && err.errMsg.indexOf('timeout') > -1) {
+          wx.showToast({ title: '请求超时，请检查网络', icon: 'none' });
+        } else {
+          wx.showToast({ title: '网络连接失败', icon: 'none' });
+        }
         reject(err);
       }
     });
   });
 }
 
-function get(url, data) {
-  return request({ url, method: 'GET', data });
+function get(url, data, silent) {
+  return request({ url, method: 'GET', data, silent });
 }
 
 function post(url, data) {
