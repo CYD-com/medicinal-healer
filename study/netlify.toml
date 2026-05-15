@@ -1,0 +1,7 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  VITE_APP_API_BASE_URL = "https://medicinal-healer-production.up.railway.app"
+  NODE_VERSION = "22"
