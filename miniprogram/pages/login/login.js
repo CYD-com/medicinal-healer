@@ -36,7 +36,7 @@ Page({
     try {
       const res = await api.login({ username, password });
       app.setToken(res.data.token);
-      app.setUserInfo(res.data);
+      app.setUserInfo(res.data.user);
       wx.showToast({ title: '登录成功', icon: 'success' });
       setTimeout(() => {
         wx.switchTab({ url: '/pages/index/index' });

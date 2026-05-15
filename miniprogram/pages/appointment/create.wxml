@@ -6,7 +6,7 @@
       </view>
       <view class="detail-item">
         <text class="label">预约编号</text>
-        <text class="value">{{appointment.id}}</text>
+        <text class="value">{{appointment.appointmentId}}</text>
       </view>
       <view class="detail-item">
         <text class="label">科室</text>
@@ -22,11 +22,15 @@
       </view>
       <view class="detail-item">
         <text class="label">时间段</text>
-        <text class="value">{{appointment.timeSlot}}</text>
+        <text class="value">{{appointment.timeSlotDisplay}}</text>
       </view>
       <view class="detail-item">
         <text class="label">就诊人</text>
         <text class="value">{{appointment.patientName}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">联系电话</text>
+        <text class="value">{{appointment.patientPhone}}</text>
       </view>
       <view class="detail-item" wx:if="{{appointment.symptoms}}">
         <text class="label">症状描述</text>
@@ -63,7 +67,12 @@
       </view>
 
       <view class="form-item">
-        <text class="label">就诊人身份证号</text>
+        <text class="label">联系电话 *</text>
+        <input class="input" placeholder="请输入联系电话" type="number" value="{{form.patientPhone}}" bindinput="onInput" data-field="patientPhone" maxlength="11" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">身份证号</text>
         <input class="input" placeholder="请输入身份证号" value="{{form.patientIdCard}}" bindinput="onInput" data-field="patientIdCard" />
       </view>
 

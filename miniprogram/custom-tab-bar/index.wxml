@@ -1,0 +1,26 @@
+<view class="tab-bar">
+  <view
+    wx:for="{{list}}"
+    wx:key="index"
+    class="tab-bar-item"
+    data-path="{{item.pagePath}}"
+    data-index="{{index}}"
+    bindtap="switchTab"
+  >
+    <view class="icon-wrap">
+      <view class="icon-item" wx:if="{{item.icon === 'home'}}">
+        <view class="svg-home {{selected === index ? 'active' : ''}}"></view>
+      </view>
+      <view class="icon-item" wx:elif="{{item.icon === 'appointment'}}">
+        <view class="svg-calendar {{selected === index ? 'active' : ''}}"></view>
+      </view>
+      <view class="icon-item" wx:elif="{{item.icon === 'consult'}}">
+        <view class="svg-chat {{selected === index ? 'active' : ''}}"></view>
+      </view>
+      <view class="icon-item" wx:elif="{{item.icon === 'profile'}}">
+        <view class="svg-user {{selected === index ? 'active' : ''}}"></view>
+      </view>
+    </view>
+    <text class="tab-text {{selected === index ? 'active' : ''}}">{{item.text}}</text>
+  </view>
+</view>

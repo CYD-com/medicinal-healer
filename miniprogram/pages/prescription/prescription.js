@@ -15,16 +15,21 @@ Page({
     this.loadPrescriptions();
   },
 
+  mapItem(item) {
+    return {
+      ...item,
+      doctorName: item.doctor ? item.doctor.name : '',
+      createTime: util.formatTime(item.createdAt),
+      statusText: this.getStatusText(item.status),
+      statusClass: this.getStatusClass(item.status)
+    };
+  },
+
   async loadPrescriptions() {
     this.setData({ loading: true, page: 1 });
     try {
       const res = await api.getPrescriptions({ page: 1, size: 10 });
-      const records = (res.data.records || []).map(item => ({
-        ...item,
-        statusText: this.getStatusText(item.status),
-        statusClass: this.getStatusClass(item.status),
-        createTime: util.formatTime(item.createTime)
-      }));
+      const records = (res.data.records || []).map(this.mapItem.bind(this));
       this.setData({
         prescriptions: records,
         hasMore: records.length >= 10,
@@ -41,12 +46,7 @@ Page({
     this.setData({ loading: true });
     try {
       const res = await api.getPrescriptions({ page: nextPage, size: 10 });
-      const records = (res.data.records || []).map(item => ({
-        ...item,
-        statusText: this.getStatusText(item.status),
-        statusClass: this.getStatusClass(item.status),
-        createTime: util.formatTime(item.createTime)
-      }));
+      const records = (res.data.records || []).map(this.mapItem.bind(this));
       this.setData({
         prescriptions: [...prescriptions, ...records],
         page: nextPage,
@@ -83,7 +83,8 @@ Page({
     try {
       const res = await api.getPrescriptionById(id);
       const data = res.data;
-      data.createTime = util.formatTime(data.createTime);
+      data.createTime = util.formatTime(data.createdAt);
+      data.doctorName = data.doctor ? data.doctor.name : '';
       this.setData({
         selectedPrescription: data,
         showDetail: true

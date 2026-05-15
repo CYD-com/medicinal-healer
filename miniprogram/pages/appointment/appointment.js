@@ -53,6 +53,10 @@ Page({
       });
       const records = (res.data.records || []).map(item => ({
         ...item,
+        id: item.appointmentId,
+        doctorName: item.doctor ? item.doctor.name : '',
+        departmentName: item.department || '',
+        timeSlotDisplay: item.timeSlot ? item.timeSlot.startTime + '-' + item.timeSlot.endTime : '',
         statusText: util.getStatusText(item.status),
         statusClass: util.getStatusClass(item.status)
       }));
@@ -78,6 +82,10 @@ Page({
       });
       const records = (res.data.records || []).map(item => ({
         ...item,
+        id: item.appointmentId,
+        doctorName: item.doctor ? item.doctor.name : '',
+        departmentName: item.department || '',
+        timeSlotDisplay: item.timeSlot ? item.timeSlot.startTime + '-' + item.timeSlot.endTime : '',
         statusText: util.getStatusText(item.status),
         statusClass: util.getStatusClass(item.status)
       }));

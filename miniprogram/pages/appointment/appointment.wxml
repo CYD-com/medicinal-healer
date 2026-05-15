@@ -40,7 +40,7 @@
             </view>
             <view class="info-row">
               <text class="label">时间：</text>
-              <text class="value">{{item.appointmentDate}} {{item.timeSlot}}</text>
+              <text class="value">{{item.appointmentDate}} {{item.timeSlotDisplay}}</text>
             </view>
             <view class="info-row">
               <text class="label">就诊人：</text>

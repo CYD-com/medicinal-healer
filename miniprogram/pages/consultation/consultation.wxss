@@ -1,6 +1,7 @@
 .consultation-page {
   min-height: 100vh;
   background: #f5f7fa;
+  padding-bottom: 140rpx;
 }
 
 .tab-bar {

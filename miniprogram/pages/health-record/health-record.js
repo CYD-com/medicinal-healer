@@ -7,7 +7,7 @@ Page({
     overview: null,
     medicalHistory: null,
     visits: [],
-    indicators: [],
+    indicators: null,
     indicatorTypes: [
       { label: '血压', value: 'blood_pressure' },
       { label: '血糖', value: 'blood_sugar' },
@@ -31,20 +31,10 @@ Page({
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab;
     this.setData({ currentTab: tab });
-    switch (tab) {
-      case 'overview':
-        this.loadOverview();
-        break;
-      case 'history':
-        this.loadMedicalHistory();
-        break;
-      case 'visits':
-        this.loadVisits();
-        break;
-      case 'indicators':
-        this.loadIndicators();
-        break;
-    }
+    if (tab === 'overview') this.loadOverview();
+    else if (tab === 'history') this.loadMedicalHistory();
+    else if (tab === 'visits') this.loadVisits();
+    else if (tab === 'indicators') this.loadIndicators();
   },
 
   async loadOverview() {
@@ -69,7 +59,11 @@ Page({
     this.setData({ loading: true });
     try {
       const res = await api.getVisits({});
-      this.setData({ visits: res.data || [], loading: false });
+      const visits = (res.data || []).map(item => ({
+        ...item,
+        doctorName: item.doctor ? item.doctor.name : ''
+      }));
+      this.setData({ visits, loading: false });
     } catch (err) {
       this.setData({ loading: false });
     }
@@ -82,7 +76,7 @@ Page({
       const res = await api.getIndicators({
         type: indicatorTypes[indicatorIndex].value
       });
-      this.setData({ indicators: res.data || [], loading: false });
+      this.setData({ indicators: res.data || null, loading: false });
     } catch (err) {
       this.setData({ loading: false });
     }
@@ -91,13 +85,6 @@ Page({
   onIndicatorTypeChange(e) {
     this.setData({ indicatorIndex: e.detail.value });
     this.loadIndicators();
-  },
-
-  goVisitDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: '/pages/health-record/health-record?visitId=' + id
-    });
   },
 
   showAddIndicator() {

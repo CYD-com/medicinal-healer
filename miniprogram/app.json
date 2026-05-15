@@ -22,34 +22,26 @@
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
+    "custom": true,
     "color": "#999999",
     "selectedColor": "#4A90D9",
     "backgroundColor": "#ffffff",
-    "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/home.png",
-        "selectedIconPath": "images/home-active.png"
+        "text": "首页"
       },
       {
         "pagePath": "pages/appointment/appointment",
-        "text": "预约",
-        "iconPath": "images/appointment.png",
-        "selectedIconPath": "images/appointment-active.png"
+        "text": "预约"
       },
       {
         "pagePath": "pages/consultation/consultation",
-        "text": "问诊",
-        "iconPath": "images/consult.png",
-        "selectedIconPath": "images/consult-active.png"
+        "text": "问诊"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的",
-        "iconPath": "images/profile.png",
-        "selectedIconPath": "images/profile-active.png"
+        "text": "我的"
       }
     ]
   },

@@ -1,0 +1,201 @@
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100rpx;
+  background: #ffffff;
+  display: flex;
+  border-top: 1rpx solid #efefef;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 9999;
+}
+
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-wrap {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.icon-item {
+  position: relative;
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.tab-text {
+  font-size: 20rpx;
+  margin-top: 2rpx;
+  color: #999999;
+  transition: color 0.2s;
+}
+
+.tab-text.active {
+  color: #4A90D9;
+  font-weight: 600;
+}
+
+/* ===== 首页图标 ===== */
+.svg-home {
+  position: relative;
+  width: 40rpx;
+  height: 36rpx;
+}
+.svg-home::before {
+  content: '';
+  position: absolute;
+  top: 16rpx;
+  left: 6rpx;
+  width: 28rpx;
+  height: 20rpx;
+  border: 3rpx solid #bfbfbf;
+  border-top: none;
+  border-radius: 0 0 4rpx 4rpx;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.svg-home::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 20rpx solid transparent;
+  border-right: 20rpx solid transparent;
+  border-bottom: 18rpx solid #bfbfbf;
+  transition: border-bottom-color 0.2s;
+}
+.svg-home.active::before {
+  border-color: #4A90D9;
+}
+.svg-home.active::after {
+  border-bottom-color: #4A90D9;
+}
+
+/* ===== 预约图标 ===== */
+.svg-calendar {
+  position: relative;
+  width: 38rpx;
+  height: 40rpx;
+}
+.svg-calendar::before {
+  content: '';
+  position: absolute;
+  top: 10rpx;
+  left: 4rpx;
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid #bfbfbf;
+  border-radius: 6rpx;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.svg-calendar::after {
+  content: '';
+  position: absolute;
+  top: 2rpx;
+  left: 10rpx;
+  width: 4rpx;
+  height: 12rpx;
+  background: #bfbfbf;
+  border-radius: 2rpx;
+  box-shadow: 14rpx 0 0 #bfbfbf;
+  transition: background 0.2s, box-shadow-color 0.2s;
+}
+.svg-calendar.active::before {
+  border-color: #4A90D9;
+}
+.svg-calendar.active::after {
+  background: #4A90D9;
+  box-shadow: 14rpx 0 0 #4A90D9;
+}
+
+/* ===== 问诊图标 ===== */
+.svg-chat {
+  position: relative;
+  width: 40rpx;
+  height: 40rpx;
+}
+.svg-chat::before {
+  content: '';
+  position: absolute;
+  top: 2rpx;
+  left: 2rpx;
+  width: 30rpx;
+  height: 26rpx;
+  border: 3rpx solid #bfbfbf;
+  border-radius: 10rpx 10rpx 10rpx 4rpx;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.svg-chat::after {
+  content: '';
+  position: absolute;
+  bottom: 4rpx;
+  left: 6rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border: 3rpx solid #bfbfbf;
+  border-top-color: transparent;
+  border-right-color: transparent;
+  transform: rotate(45deg);
+  border-radius: 0 0 0 2rpx;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.svg-chat.active::before,
+.svg-chat.active::after {
+  border-color: #4A90D9;
+}
+.svg-chat.active::after {
+  border-top-color: transparent;
+  border-right-color: transparent;
+}
+
+/* ===== 个人中心图标 ===== */
+.svg-user {
+  position: relative;
+  width: 40rpx;
+  height: 40rpx;
+}
+.svg-user::before {
+  content: '';
+  position: absolute;
+  top: 2rpx;
+  left: 10rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border: 3rpx solid #bfbfbf;
+  border-radius: 50%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.svg-user::after {
+  content: '';
+  position: absolute;
+  top: 22rpx;
+  left: 2rpx;
+  width: 36rpx;
+  height: 18rpx;
+  border: 3rpx solid #bfbfbf;
+  border-top: none;
+  border-radius: 0 0 20rpx 20rpx;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.svg-user.active::before,
+.svg-user.active::after {
+  border-color: #4A90D9;
+}

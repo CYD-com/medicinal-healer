@@ -22,6 +22,7 @@ Page({
       const data = res.data;
       data.statusText = util.getStatusText(data.status);
       data.statusClass = util.getStatusClass(data.status);
+      data.doctorName = data.doctor ? data.doctor.name : '';
       this.setData({ consultation: data });
     } catch (err) {
       console.error('获取问诊详情失败', err);
@@ -34,7 +35,7 @@ Page({
       const res = await api.getConsultationMessages(this.consultationId);
       const messages = (res.data || []).map(item => ({
         ...item,
-        createTimeFormatted: util.formatTime(item.createTime)
+        createTimeFormatted: util.formatTime(item.createdAt)
       }));
       this.setData({
         messages,

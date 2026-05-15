@@ -18,16 +18,16 @@
     <view wx:if="{{overview}}" class="overview-container">
       <view class="summary-card">
         <view class="summary-item">
-          <text class="summary-value">{{overview.totalVisits || 0}}</text>
+          <text class="summary-value">{{overview.statistics.totalVisits || 0}}</text>
           <text class="summary-label">就诊次数</text>
         </view>
         <view class="summary-item">
-          <text class="summary-value">{{overview.activePrescriptions || 0}}</text>
-          <text class="summary-label">有效处方</text>
+          <text class="summary-value">{{overview.statistics.totalPrescriptions || 0}}</text>
+          <text class="summary-label">处方数量</text>
         </view>
         <view class="summary-item">
-          <text class="summary-value">{{overview.authorizedDoctors || 0}}</text>
-          <text class="summary-label">授权医生</text>
+          <text class="summary-value">{{overview.statistics.healthScore || '--'}}</text>
+          <text class="summary-label">健康评分</text>
         </view>
       </view>
 
@@ -35,30 +35,23 @@
         <text class="section-title">基本信息</text>
         <view class="info-row">
           <text class="label">血型</text>
-          <text class="value">{{overview.bloodType || '未填写'}}</text>
+          <text class="value">{{overview.basicInfo.bloodType || '未填写'}}</text>
         </view>
         <view class="info-row">
           <text class="label">身高</text>
-          <text class="value">{{overview.height ? overview.height + 'cm' : '未填写'}}</text>
+          <text class="value">{{overview.basicInfo.height ? overview.basicInfo.height + 'cm' : '未填写'}}</text>
         </view>
         <view class="info-row">
           <text class="label">体重</text>
-          <text class="value">{{overview.weight ? overview.weight + 'kg' : '未填写'}}</text>
+          <text class="value">{{overview.basicInfo.weight ? overview.basicInfo.weight + 'kg' : '未填写'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="label">BMI</text>
+          <text class="value">{{overview.basicInfo.bmi || '未计算'}}</text>
         </view>
         <view class="info-row">
           <text class="label">过敏史</text>
-          <text class="value">{{overview.allergies || '无'}}</text>
-        </view>
-      </view>
-
-      <view class="card" wx:if="{{overview.recentVisits && overview.recentVisits.length > 0}}">
-        <text class="section-title">最近就诊</text>
-        <view class="visit-item" wx:for="{{overview.recentVisits}}" wx:key="id">
-          <view class="visit-header">
-            <text class="visit-dept">{{item.departmentName}}</text>
-            <text class="visit-date">{{item.visitDate}}</text>
-          </view>
-          <text class="visit-diagnosis">{{item.diagnosis}}</text>
+          <text class="value">{{overview.medicalHistory.allergies.length > 0 ? overview.medicalHistory.allergies[0] : '无'}}</text>
         </view>
       </view>
     </view>
@@ -75,8 +68,8 @@
         <view wx:if="{{medicalHistory.pastDiseases && medicalHistory.pastDiseases.length > 0}}">
           <view class="history-item" wx:for="{{medicalHistory.pastDiseases}}" wx:key="id">
             <text class="disease-name">{{item.diseaseName}}</text>
-            <text class="disease-time">{{item.diagnosedDate}}</text>
-            <text class="disease-desc">{{item.description}}</text>
+            <text class="disease-time">{{item.diagnosisDate}}</text>
+            <text class="disease-desc">{{item.treatment}}</text>
           </view>
         </view>
         <view wx:else class="empty-tip">无既往病史记录</view>
@@ -98,7 +91,7 @@
         <view wx:if="{{medicalHistory.familyDiseases && medicalHistory.familyDiseases.length > 0}}">
           <view class="history-item" wx:for="{{medicalHistory.familyDiseases}}" wx:key="id">
             <text class="disease-name">{{item.diseaseName}}</text>
-            <text class="disease-desc">亲属：{{item.relationship}}</text>
+            <text class="disease-desc">亲属：{{item.relation}}</text>
           </view>
         </view>
         <view wx:else class="empty-tip">无家族病史记录</view>
@@ -110,7 +103,7 @@
           <view class="history-item" wx:for="{{medicalHistory.surgicalHistories}}" wx:key="id">
             <text class="disease-name">{{item.surgeryName}}</text>
             <text class="disease-time">{{item.surgeryDate}}</text>
-            <text class="disease-desc">{{item.description}}</text>
+            <text class="disease-desc">{{item.hospital}}</text>
           </view>
         </view>
         <view wx:else class="empty-tip">无手术史记录</view>
@@ -124,9 +117,9 @@
 
   <view wx:if="{{currentTab === 'visits'}}" class="tab-content">
     <view wx:if="{{visits.length > 0}}" class="visits-container">
-      <view class="card visit-card" wx:for="{{visits}}" wx:key="id" bindtap="goVisitDetail" data-id="{{item.id}}">
+      <view class="card visit-card" wx:for="{{visits}}" wx:key="visitId">
         <view class="visit-header">
-          <text class="visit-dept">{{item.departmentName}}</text>
+          <text class="visit-dept">{{item.department}}</text>
           <text class="visit-date">{{item.visitDate}}</text>
         </view>
         <view class="visit-body">
@@ -151,15 +144,12 @@
       </picker>
     </view>
 
-    <view wx:if="{{indicators.length > 0}}" class="indicators-container">
-      <view class="card indicator-card" wx:for="{{indicators}}" wx:key="id">
+    <view wx:if="{{indicators && indicators.records && indicators.records.length > 0}}" class="indicators-container">
+      <view class="card indicator-card" wx:for="{{indicators.records}}" wx:key="recordId">
         <view class="indicator-header">
-          <text class="indicator-value">{{item.value}} {{item.unit}}</text>
-          <text class="indicator-date">{{item.recordDate}}</text>
+          <text class="indicator-value">{{item.value || '--'}} {{indicators.unit}}</text>
+          <text class="indicator-date">{{item.recordDate}} {{item.recordTime}}</text>
         </view>
-        <text class="indicator-status {{item.isNormal ? 'normal' : 'abnormal'}}">
-          {{item.isNormal ? '正常' : '异常'}}
-        </text>
       </view>
 
       <button class="btn-outline add-btn" bindtap="showAddIndicator">添加新记录</button>

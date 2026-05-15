@@ -9,9 +9,11 @@ Page({
     doctor: null,
     departmentName: '',
     doctorId: null,
+    departmentId: null,
     form: {
       patientName: '',
       patientIdCard: '',
+      patientPhone: '',
       appointmentDate: '',
       symptoms: ''
     },
@@ -49,6 +51,11 @@ Page({
       const data = res.data;
       data.statusText = util.getStatusText(data.status);
       data.statusClass = util.getStatusClass(data.status);
+      data.doctorName = data.doctor ? data.doctor.name : '';
+      data.departmentName = data.department || '';
+      if (data.timeSlot) {
+        data.timeSlotDisplay = data.timeSlot.startTime + '-' + data.timeSlot.endTime;
+      }
       this.setData({ appointment: data });
     } catch (err) {
       console.error('获取预约详情失败', err);
@@ -58,7 +65,11 @@ Page({
   async loadDoctorDetail(id) {
     try {
       const res = await api.getDoctorById(id);
-      this.setData({ doctor: res.data });
+      const doctor = res.data;
+      this.setData({
+        doctor: doctor,
+        departmentId: doctor.department ? doctor.department.id : null
+      });
     } catch (err) {
       console.error('获取医生信息失败', err);
     }
@@ -82,9 +93,11 @@ Page({
   },
 
   validate() {
-    const { form, timeIndex, doctorId } = this.data;
+    const { form, timeIndex, doctorId, departmentId } = this.data;
     if (!doctorId) return '请选择医生';
+    if (!departmentId) return '科室信息缺失，请重新选择医生';
     if (!form.patientName.trim()) return '请输入就诊人姓名';
+    if (!form.patientPhone.trim()) return '请输入联系电话';
     if (!form.appointmentDate) return '请选择预约日期';
     if (timeIndex < 0) return '请选择时间段';
     return '';
@@ -97,16 +110,19 @@ Page({
       return;
     }
 
-    const { form, timeSlots, timeIndex, doctorId } = this.data;
+    const { form, timeSlots, timeIndex, doctorId, departmentId } = this.data;
     this.setData({ submitting: true });
 
     try {
+      const parts = timeSlots[timeIndex].split('-');
       await api.createAppointment({
         doctorId: doctorId,
+        departmentId: departmentId,
         appointmentDate: form.appointmentDate,
-        timeSlot: timeSlots[timeIndex],
+        startTime: parts[0],
+        endTime: parts[1],
         patientName: form.patientName,
-        patientIdCard: form.patientIdCard,
+        patientPhone: form.patientPhone,
         symptoms: form.symptoms
       });
       wx.showToast({ title: '预约成功', icon: 'success' });
@@ -128,7 +144,7 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            await api.cancelAppointment(appointment.id);
+            await api.cancelAppointment(appointment.appointmentId);
             wx.showToast({ title: '取消成功', icon: 'success' });
             setTimeout(() => {
               wx.navigateBack();

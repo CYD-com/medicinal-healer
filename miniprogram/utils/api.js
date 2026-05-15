@@ -3,6 +3,7 @@ const api = require('./request');
 module.exports = {
   login: (data) => api.post('/api/user/login', data),
   register: (data) => api.post('/api/user/register', data),
+  getCaptcha: () => api.get('/api/captcha/generate'),
   logout: () => api.post('/api/user/logout'),
   getUserInfo: () => api.get('/api/user/info'),
   updateUserInfo: (data) => api.put('/api/user/info', data),

@@ -6,12 +6,12 @@
   <view class="form">
     <view class="form-item">
       <text class="label">用户名 *</text>
-      <input class="input" placeholder="请输入用户名" value="{{form.username}}" bindinput="onInput" data-field="username" maxlength="20" />
+      <input class="input" placeholder="请输入用户名（3-20位）" value="{{form.username}}" bindinput="onInput" data-field="username" maxlength="20" />
     </view>
 
     <view class="form-item">
       <text class="label">密码 *</text>
-      <input class="input" placeholder="请输入密码" password value="{{form.password}}" bindinput="onInput" data-field="password" maxlength="20" />
+      <input class="input" placeholder="请输入密码（6-20位）" password value="{{form.password}}" bindinput="onInput" data-field="password" maxlength="20" />
     </view>
 
     <view class="form-item">
@@ -20,40 +20,12 @@
     </view>
 
     <view class="form-item">
-      <text class="label">真实姓名 *</text>
-      <input class="input" placeholder="请输入真实姓名" value="{{form.realName}}" bindinput="onInput" data-field="realName" maxlength="10" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">性别</text>
-      <picker bindchange="onGenderChange" value="{{genderIndex}}" range="{{genders}}">
-        <view class="input picker-input">{{genders[genderIndex]}}</view>
-      </picker>
-    </view>
-
-    <view class="form-item">
-      <text class="label">年龄</text>
-      <input class="input" placeholder="请输入年龄" type="number" value="{{form.age}}" bindinput="onInput" data-field="age" maxlength="3" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">手机号</text>
-      <input class="input" placeholder="请输入手机号" type="number" value="{{form.phone}}" bindinput="onInput" data-field="phone" maxlength="11" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">身份证号</text>
-      <input class="input" placeholder="请输入身份证号" value="{{form.idCard}}" bindinput="onInput" data-field="idCard" maxlength="18" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">邮箱</text>
-      <input class="input" placeholder="请输入邮箱" value="{{form.email}}" bindinput="onInput" data-field="email" maxlength="50" />
-    </view>
-
-    <view class="form-item">
-      <text class="label">地址</text>
-      <input class="input" placeholder="请输入地址" value="{{form.address}}" bindinput="onInput" data-field="address" maxlength="100" />
+      <text class="label">验证码 *</text>
+      <view class="captcha-row">
+        <input class="input captcha-input" placeholder="请输入验证码" value="{{form.code}}" bindinput="onInput" data-field="code" maxlength="4" />
+        <image class="captcha-img" src="{{captchaImage}}" mode="aspectFit" bindtap="refreshCaptcha" />
+      </view>
+      <text class="captcha-tip" bindtap="refreshCaptcha">看不清楚？换一张</text>
     </view>
 
     <button class="btn-primary" bindtap="onRegister" disabled="{{loading}}">

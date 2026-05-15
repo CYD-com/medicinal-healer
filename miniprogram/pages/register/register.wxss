@@ -44,10 +44,29 @@
   box-sizing: border-box;
 }
 
-.picker-input {
+.captcha-row {
   display: flex;
+  gap: 16rpx;
   align-items: center;
-  color: #333;
+}
+
+.captcha-input {
+  flex: 1;
+}
+
+.captcha-img {
+  width: 200rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #eee;
+}
+
+.captcha-tip {
+  display: block;
+  font-size: 22rpx;
+  color: #4A90D9;
+  margin-top: 8rpx;
+  text-align: right;
 }
 
 .btn-primary {

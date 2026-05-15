@@ -34,7 +34,7 @@
         </view>
       </view>
       <view class="card-footer">
-        <text class="item-count">{{item.items ? item.items.length : 0}}种药品</text>
+        <text class="item-count">{{item.drugs ? item.drugs.length : 0}}种药品</text>
         <text class="arrow">›</text>
       </view>
     </view>
@@ -69,23 +69,21 @@
           <text class="detail-value">{{selectedPrescription.createTime}}</text>
         </view>
 
-        <view class="medicine-list" wx:if="{{selectedPrescription.items && selectedPrescription.items.length > 0}}">
+        <view class="medicine-list" wx:if="{{selectedPrescription.drugs && selectedPrescription.drugs.length > 0}}">
           <text class="medicine-title">药品明细</text>
-          <view class="medicine-item" wx:for="{{selectedPrescription.items}}" wx:key="id">
+          <view class="medicine-item" wx:for="{{selectedPrescription.drugs}}" wx:key="id">
             <text class="medicine-name">{{item.drugName}}</text>
             <view class="medicine-info">
               <text>规格：{{item.specification}}</text>
               <text>用量：{{item.dosage}}</text>
-              <text>频次：{{item.frequency}}</text>
-              <text>天数：{{item.days}}天</text>
+              <text>数量：{{item.quantity}}{{item.unit}}</text>
             </view>
-            <text class="medicine-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</text>
           </view>
         </view>
 
-        <view class="detail-section" wx:if="{{selectedPrescription.remark}}">
+        <view class="detail-section" wx:if="{{selectedPrescription.doctorAdvice}}">
           <text class="detail-label">医嘱</text>
-          <text class="detail-value">{{selectedPrescription.remark}}</text>
+          <text class="detail-value">{{selectedPrescription.doctorAdvice}}</text>
         </view>
       </scroll-view>
     </view>

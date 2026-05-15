@@ -4,7 +4,7 @@
       <text class="doctor-name">{{consultation.doctorName}}</text>
       <text class="tag {{consultation.statusClass}}">{{consultation.statusText}}</text>
     </view>
-    <text class="symptoms">症状：{{consultation.symptoms}}</text>
+    <text class="symptoms">症状：{{consultation.symptom}}</text>
   </view>
 
   <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation>
@@ -13,7 +13,7 @@
     </view>
 
     <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
-      <view class="message-item {{item.senderType === 'patient' ? 'self' : 'other'}}">
+      <view class="message-item {{item.senderRole === 'patient' ? 'self' : 'other'}}">
         <view class="message-bubble">
           <text class="message-content">{{item.content}}</text>
           <text class="message-time">{{item.createTimeFormatted}}</text>

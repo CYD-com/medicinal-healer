@@ -1,0 +1,1 @@
+-- H2 Data initialization (passwords already set in schema-h2.sql)

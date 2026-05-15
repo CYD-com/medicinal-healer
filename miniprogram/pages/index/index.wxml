@@ -4,27 +4,29 @@
       <text class="hello">你好，{{userInfo ? userInfo.realName : '用户'}}</text>
       <text class="welcome">欢迎使用智慧医疗</text>
     </view>
-    <image class="avatar" src="{{userInfo && userInfo.avatar ? baseUrl + userInfo.avatar : '/images/default-avatar.png'}}" mode="aspectFill" bindtap="goProfile"></image>
+    <view class="avatar-wrap">
+      <image class="avatar" src="{{userInfo && userInfo.avatar ? baseUrl + userInfo.avatar : '/images/default-avatar.png'}}" mode="aspectFill" bindtap="goProfile"></image>
+    </view>
   </view>
 
   <view class="banner">
-    <swiper class="swiper" indicator-dots autoplay circular>
+    <swiper class="swiper" indicator-dots indicator-active-color="#fff" autoplay circular interval="4000">
       <swiper-item>
         <view class="banner-item" style="background: linear-gradient(135deg, #4A90D9, #357ABD);">
           <text class="banner-title">在线预约挂号</text>
-          <text class="banner-desc">随时随地，轻松预约</text>
+          <text class="banner-desc">随时随地，轻松预约专家门诊</text>
         </view>
       </swiper-item>
       <swiper-item>
-        <view class="banner-item" style="background: linear-gradient(135deg, #52c41a, #389e0d);">
+        <view class="banner-item" style="background: linear-gradient(135deg, #38b2ac, #2c9a94);">
           <text class="banner-title">在线问诊</text>
-          <text class="banner-desc">足不出户，专家问诊</text>
+          <text class="banner-desc">足不出户，名医在线解答</text>
         </view>
       </swiper-item>
       <swiper-item>
-        <view class="banner-item" style="background: linear-gradient(135deg, #faad14, #d48806);">
+        <view class="banner-item" style="background: linear-gradient(135deg, #e88d5e, #d47440);">
           <text class="banner-title">健康档案</text>
-          <text class="banner-desc">全面记录，健康守护</text>
+          <text class="banner-desc">全面记录，守护您的健康</text>
         </view>
       </swiper-item>
     </swiper>
@@ -38,15 +40,15 @@
         <text class="service-name">预约挂号</text>
       </view>
       <view class="service-item" bindtap="goConsultation">
-        <view class="service-icon" style="background: #e8f8e8;">💬</view>
+        <view class="service-icon" style="background: #e6f7ee;">💬</view>
         <text class="service-name">在线问诊</text>
       </view>
       <view class="service-item" bindtap="goHealthRecord">
-        <view class="service-icon" style="background: #fff8e8;">📋</view>
+        <view class="service-icon" style="background: #fff7e6;">📋</view>
         <text class="service-name">健康档案</text>
       </view>
       <view class="service-item" bindtap="goPrescription">
-        <view class="service-icon" style="background: #fde8e8;">💊</view>
+        <view class="service-icon" style="background: #fde8ec;">💊</view>
         <text class="service-name">我的处方</text>
       </view>
     </view>
@@ -54,24 +56,24 @@
 
   <view class="quick-actions">
     <text class="section-title">快捷入口</text>
-    <view class="action-list">
+    <view class="action-card">
       <view class="action-item" bindtap="goDepartments">
-        <text class="action-icon">🏥</text>
+        <view class="action-icon-wrap" style="background: #e8f4fd;">🏥</view>
         <text class="action-text">科室导航</text>
         <text class="action-arrow">›</text>
       </view>
       <view class="action-item" bindtap="goDoctors">
-        <text class="action-icon">👨‍⚕️</text>
+        <view class="action-icon-wrap" style="background: #e6f7ee;">👨‍⚕️</view>
         <text class="action-text">找医生</text>
         <text class="action-arrow">›</text>
       </view>
       <view class="action-item" bindtap="goHealthRecord">
-        <text class="action-icon">📊</text>
+        <view class="action-icon-wrap" style="background: #fff7e6;">📊</view>
         <text class="action-text">健康指标</text>
         <text class="action-arrow">›</text>
       </view>
       <view class="action-item" bindtap="goNotifications">
-        <text class="action-icon">🔔</text>
+        <view class="action-icon-wrap" style="background: #fde8ec;">🔔</view>
         <text class="action-text">消息通知</text>
         <text class="action-arrow">›</text>
       </view>

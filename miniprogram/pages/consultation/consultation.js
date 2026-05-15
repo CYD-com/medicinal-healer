@@ -8,8 +8,8 @@ Page({
     consultations: [],
     selectedDoctor: null,
     form: {
-      symptoms: '',
-      duration: '',
+      symptom: '',
+      description: '',
       medicalHistory: ''
     },
     statusList: [
@@ -59,9 +59,10 @@ Page({
       });
       const records = (res.data.records || []).map(item => ({
         ...item,
+        doctorName: item.doctor ? item.doctor.name : '',
         statusText: util.getStatusText(item.status),
         statusClass: util.getStatusClass(item.status),
-        createTime: util.formatTime(item.createTime)
+        createTime: util.formatTime(item.createdAt)
       }));
       this.setData({
         consultations: records,
@@ -85,9 +86,10 @@ Page({
       });
       const records = (res.data.records || []).map(item => ({
         ...item,
+        doctorName: item.doctor ? item.doctor.name : '',
         statusText: util.getStatusText(item.status),
         statusClass: util.getStatusClass(item.status),
-        createTime: util.formatTime(item.createTime)
+        createTime: util.formatTime(item.createdAt)
       }));
       this.setData({
         consultations: [...consultations, ...records],
@@ -130,7 +132,7 @@ Page({
       wx.showToast({ title: '请选择医生', icon: 'none' });
       return;
     }
-    if (!form.symptoms.trim()) {
+    if (!form.symptom.trim()) {
       wx.showToast({ title: '请描述症状', icon: 'none' });
       return;
     }
@@ -139,15 +141,16 @@ Page({
     try {
       await api.createConsultation({
         doctorId: selectedDoctor.doctorId,
-        symptoms: form.symptoms,
-        duration: form.duration,
+        consultationType: 'online',
+        symptom: form.symptom,
+        description: form.description || form.symptom,
         medicalHistory: form.medicalHistory
       });
       wx.showToast({ title: '问诊提交成功', icon: 'success' });
       this.setData({
         currentTab: 'list',
         selectedDoctor: null,
-        form: { symptoms: '', duration: '', medicalHistory: '' }
+        form: { symptom: '', description: '', medicalHistory: '' }
       });
       this.loadConsultations();
     } catch (err) {
