@@ -1,7 +1,7 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd demo && mvn package -DskipTests"
+buildCommand = "mvn package -DskipTests"
 
 [deploy]
-startCommand = "cd demo && java -jar target/demo-0.0.1-SNAPSHOT.jar --spring.profiles.active=h2"
+startCommand = "java -jar demo/target/demo-0.0.1-SNAPSHOT.jar --spring.profiles.active=h2"
 port = 8080
